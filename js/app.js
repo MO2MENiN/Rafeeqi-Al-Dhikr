@@ -1,5 +1,5 @@
 // ============================================
-// Azkar App - Main Application Logic
+// Rafeeqi Al-Dhikr - Main Application Logic with PWA
 // ============================================
 
 const App = (function() {
@@ -14,12 +14,22 @@ const App = (function() {
     lastRead: null,
     settings: {
       darkMode: false,
-      fontSize: 1.3, // rem
-      vibration: true
+      fontSize: 1.3,
+      vibration: true,
+      pwaDismissed: false
     },
-    counters: {}, // dhikrId -> current count
-    adminLoggedIn: false,
+    counters: {},
+    adminLoggedIn: true,
     azkarData: null
+  };
+
+  // PWA State
+  let pwaState = {
+    deferredPrompt: null,
+    isInstalled: false,
+    isStandalone: false,
+    swRegistration: null,
+    updateAvailable: false
   };
 
   // DOM Elements cache
@@ -34,16 +44,13 @@ const App = (function() {
     cacheDOM();
     bindEvents();
     applyTheme();
-    registerSW();
+    initPWA();
     route();
   }
 
   function initData() {
-    // Load data from data.js (global AZKAR_DATA)
     state.azkarData = JSON.parse(JSON.stringify(AZKAR_DATA));
-
-    // Apply any admin edits from localStorage
-    const edits = JSON.parse(localStorage.getItem('azkar_edits') || '{}');
+    const edits = JSON.parse(localStorage.getItem('rafeeqi_edits') || '{}');
     Object.keys(edits).forEach(sheikhId => {
       if (state.azkarData[sheikhId]) {
         const sheikhEdits = edits[sheikhId];
@@ -74,18 +81,12 @@ const App = (function() {
     dom.headerTitle = document.querySelector('.header-title');
     dom.backBtn = document.querySelector('.header-btn.left');
     dom.themeBtn = document.querySelector('.theme-toggle');
-
-    // Home
     dom.sheikhGrid = document.querySelector('.sheikh-grid');
-
-    // Azkar List
     dom.sheikhHeaderImg = document.querySelector('.sheikh-header-img');
     dom.sheikhHeaderInfo = document.querySelector('.sheikh-header-info');
     dom.searchInput = document.querySelector('.search-input');
     dom.categoriesScroll = document.querySelector('.categories-scroll');
     dom.azkarList = document.querySelector('.azkar-list');
-
-    // Dhikr Detail
     dom.dhikrText = document.querySelector('.dhikr-text');
     dom.dhikrReference = document.querySelector('.dhikr-reference');
     dom.counterCurrent = document.querySelector('.counter-current');
@@ -93,22 +94,175 @@ const App = (function() {
     dom.counterRing = document.querySelector('.counter-ring');
     dom.counterInner = document.querySelector('.counter-inner');
     dom.favBtn = document.querySelector('.fav-btn');
-
-    // Favorites
     dom.favoritesList = document.querySelector('.favorites-list');
-
-    // Admin
-    dom.adminLogin = document.querySelector('.admin-login');
-    dom.adminPanel = document.querySelector('.admin-panel');
     dom.adminTableBody = document.querySelector('.admin-table tbody');
-
-    // Modal
     dom.modalOverlay = document.querySelector('.modal-overlay');
     dom.modalTitle = document.querySelector('.modal-header');
-    dom.modalInputs = document.querySelectorAll('.modal-input');
-
-    // Toast
     dom.toast = document.querySelector('.toast');
+
+    // PWA elements
+    dom.pwaBanner = document.getElementById('pwa-banner');
+    dom.pwaInstallBtn = document.getElementById('pwa-install-btn');
+    dom.pwaDismissBtn = document.getElementById('pwa-dismiss-btn');
+    dom.offlineIndicator = document.getElementById('offline-indicator');
+    dom.updateBanner = document.getElementById('update-banner');
+    dom.appStatus = document.getElementById('app-status');
+    dom.themeColor = document.getElementById('theme-color');
+  }
+
+  // ============================================
+  // PWA Functions
+  // ============================================
+  function initPWA() {
+    // Check if running as standalone app
+    pwaState.isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
+                            window.navigator.standalone === true;
+
+    if (pwaState.isStandalone) {
+      showAppStatus();
+    }
+
+    // Register Service Worker
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('sw.js')
+        .then(reg => {
+          pwaState.swRegistration = reg;
+          console.log('[App] SW registered:', reg.scope);
+
+          // Check for updates
+          reg.addEventListener('updatefound', () => {
+            const newWorker = reg.installing;
+            newWorker.addEventListener('statechange', () => {
+              if (newWorker.state === 'installed' && navigator.serviceWorker.controller) {
+                pwaState.updateAvailable = true;
+                showUpdateBanner();
+              }
+            });
+          });
+
+          // Periodic update check (every hour)
+          setInterval(() => {
+            reg.update();
+          }, 3600000);
+        })
+        .catch(err => console.log('[App] SW registration failed:', err));
+
+      // Listen for messages from SW
+      navigator.serviceWorker.addEventListener('message', (event) => {
+        if (event.data === 'CACHE_UPDATED') {
+          showUpdateBanner();
+        }
+      });
+    }
+
+    // Before Install Prompt
+    window.addEventListener('beforeinstallprompt', (e) => {
+      e.preventDefault();
+      pwaState.deferredPrompt = e;
+
+      if (!pwaState.isStandalone && !state.settings.pwaDismissed) {
+        setTimeout(() => showPwaBanner(), 2000);
+      }
+    });
+
+    // App installed
+    window.addEventListener('appinstalled', () => {
+      pwaState.deferredPrompt = null;
+      pwaState.isInstalled = true;
+      hidePwaBanner();
+      showToast('🎉 تم تثبيت التطبيق بنجاح!', 'success');
+      showAppStatus();
+    });
+
+    // Online/Offline detection
+    window.addEventListener('online', () => {
+      hideOfflineIndicator();
+      showToast('✅ تم استعادة الاتصال', 'success');
+    });
+
+    window.addEventListener('offline', () => {
+      showOfflineIndicator();
+      showToast('📡 أنت في وضع عدم الاتصال');
+    });
+
+    // Initial offline check
+    if (!navigator.onLine) {
+      showOfflineIndicator();
+    }
+
+    // Display mode change
+    window.matchMedia('(display-mode: standalone)').addEventListener('change', (e) => {
+      pwaState.isStandalone = e.matches;
+      if (e.matches) showAppStatus();
+    });
+  }
+
+  function showPwaBanner() {
+    if (dom.pwaBanner) dom.pwaBanner.classList.add('show');
+  }
+
+  function hidePwaBanner() {
+    if (dom.pwaBanner) dom.pwaBanner.classList.remove('show');
+  }
+
+  async function installPWA() {
+    if (!pwaState.deferredPrompt) {
+      showToast('التطبيق غير متاح للتثبيت على هذا الجهاز');
+      return;
+    }
+
+    pwaState.deferredPrompt.prompt();
+    const { outcome } = await pwaState.deferredPrompt.userChoice;
+
+    if (outcome === 'accepted') {
+      pwaState.isInstalled = true;
+      hidePwaBanner();
+    }
+
+    pwaState.deferredPrompt = null;
+  }
+
+  function dismissPwaBanner() {
+    hidePwaBanner();
+    state.settings.pwaDismissed = true;
+    saveState();
+  }
+
+  function showOfflineIndicator() {
+    if (dom.offlineIndicator) dom.offlineIndicator.classList.add('show');
+  }
+
+  function hideOfflineIndicator() {
+    if (dom.offlineIndicator) dom.offlineIndicator.classList.remove('show');
+  }
+
+  function showUpdateBanner() {
+    if (dom.updateBanner) dom.updateBanner.classList.add('show');
+  }
+
+  function hideUpdateBanner() {
+    if (dom.updateBanner) dom.updateBanner.classList.remove('show');
+  }
+
+  function showAppStatus() {
+    if (dom.appStatus) {
+      dom.appStatus.classList.add('show');
+      setTimeout(() => dom.appStatus.classList.remove('show'), 3000);
+    }
+  }
+
+  function updateApp() {
+    hideUpdateBanner();
+    if (pwaState.swRegistration) {
+      pwaState.swRegistration.update().then(() => {
+        if (pwaState.swRegistration.waiting) {
+          pwaState.swRegistration.waiting.postMessage('skipWaiting');
+        }
+        window.location.reload();
+      });
+    } else {
+      window.location.reload();
+    }
   }
 
   // ============================================
@@ -147,6 +301,7 @@ const App = (function() {
     }
 
     updateNav(page);
+    window.scrollTo(0, 0);
   }
 
   function hideAllPages() {
@@ -168,7 +323,7 @@ const App = (function() {
   // Home Page
   // ============================================
   function renderHome() {
-    dom.headerTitle.textContent = 'أذكار الشيوخ';
+    dom.headerTitle.textContent = 'رفيقي الذكر';
     dom.backBtn.classList.add('hidden');
 
     if (!dom.sheikhGrid) return;
@@ -188,7 +343,6 @@ const App = (function() {
       `;
     }).join('');
 
-    // Show last read if exists
     if (state.lastRead) {
       const lastReadCard = document.querySelector('.last-read-card');
       if (lastReadCard) {
@@ -196,7 +350,8 @@ const App = (function() {
         lastReadCard.onclick = () => {
           App.goToDhikr(state.lastRead.sheikhId, state.lastRead.catId, state.lastRead.dhikrId);
         };
-        document.querySelector('.last-read-title').textContent = state.lastRead.title;
+        const titleEl = document.querySelector('.last-read-title');
+        if (titleEl) titleEl.textContent = state.lastRead.title;
       }
     }
   }
@@ -219,7 +374,6 @@ const App = (function() {
     dom.backBtn.classList.remove('hidden');
     dom.backBtn.onclick = () => { window.location.hash = 'home'; };
 
-    // Sheikh header
     if (dom.sheikhHeaderImg) dom.sheikhHeaderImg.src = sheikh.image;
     if (dom.sheikhHeaderInfo) {
       dom.sheikhHeaderInfo.innerHTML = `
@@ -228,14 +382,11 @@ const App = (function() {
       `;
     }
 
-    // Categories
     renderCategories(sheikh);
-
-    // Azkar list
     renderAzkarItems(sheikh);
 
-    // Search
     if (dom.searchInput) {
+      dom.searchInput.value = '';
       dom.searchInput.oninput = (e) => searchAzkar(e.target.value, sheikh);
     }
   }
@@ -334,7 +485,6 @@ const App = (function() {
     dom.backBtn.classList.remove('hidden');
     dom.backBtn.onclick = () => { window.location.hash = `azkar/${sheikhId}`; };
 
-    // Set text
     if (dom.dhikrText) {
       dom.dhikrText.textContent = dhikr.text;
       dom.dhikrText.style.fontSize = state.settings.fontSize + 'rem';
@@ -344,19 +494,15 @@ const App = (function() {
       dom.dhikrReference.style.display = dhikr.reference ? 'inline-block' : 'none';
     }
 
-    // Counter
     const counterKey = `${sheikhId}_${catId}_${dhikrId}`;
     const currentCount = state.counters[counterKey] || 0;
     updateCounterUI(currentCount, dhikr.count);
 
-    // Favorite button
     updateFavButton();
 
-    // Save last read
     state.lastRead = { sheikhId, catId, dhikrId, title: dhikr.title };
     saveState();
 
-    // Font size controls
     setupFontSizeControls();
   }
 
@@ -398,20 +544,52 @@ const App = (function() {
       state.counters[counterKey] = current;
       updateCounterUI(current, target);
 
-      // Vibration
       if (state.settings.vibration && navigator.vibrate) {
         navigator.vibrate(15);
       }
 
-      // Completion
       if (current === target) {
         if (state.settings.vibration && navigator.vibrate) {
           navigator.vibrate([50, 100, 50]);
         }
         showToast('🎉 تم إكمال الذكر!', 'success');
+        triggerConfetti();
       }
 
       saveState();
+    }
+  }
+
+  function triggerConfetti() {
+    const colors = ['#D4AF37', '#1B5E20', '#FFFFFF', '#F4D03F'];
+    for (let i = 0; i < 30; i++) {
+      const confetti = document.createElement('div');
+      confetti.style.cssText = `
+        position: fixed;
+        width: 10px;
+        height: 10px;
+        background: ${colors[Math.floor(Math.random() * colors.length)]};
+        border-radius: ${Math.random() > 0.5 ? '50%' : '0'};
+        left: ${Math.random() * 100}vw;
+        top: -10px;
+        z-index: 9999;
+        pointer-events: none;
+        animation: confettiFall ${1 + Math.random() * 2}s linear forwards;
+      `;
+      document.body.appendChild(confetti);
+      setTimeout(() => confetti.remove(), 3000);
+    }
+
+    if (!document.getElementById('confetti-style')) {
+      const style = document.createElement('style');
+      style.id = 'confetti-style';
+      style.textContent = `
+        @keyframes confettiFall {
+          0% { transform: translateY(0) rotate(0deg); opacity: 1; }
+          100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+        }
+      `;
+      document.head.appendChild(style);
     }
   }
 
@@ -541,12 +719,12 @@ const App = (function() {
   async function shareText() {
     if (!state.currentDhikr) return;
 
-    const text = `${state.currentDhikr.title}\n\n${state.currentDhikr.text}\n\n(التكرار: ${state.currentDhikr.count})\n\nمن تطبيق أذكار الشيوخ`;
+    const text = `${state.currentDhikr.title}\n\n${state.currentDhikr.text}\n\n(التكرار: ${state.currentDhikr.count})\n\nمن تطبيق رفيقي الذكر`;
 
     if (navigator.share) {
       try {
         await navigator.share({ title: state.currentDhikr.title, text });
-      } catch (e) { /* cancelled */ }
+      } catch (e) { }
     } else {
       await navigator.clipboard.writeText(text);
       showToast('📋 تم نسخ النص', 'success');
@@ -563,7 +741,6 @@ const App = (function() {
     canvas.width = width;
     canvas.height = height;
 
-    // Background gradient
     const gradient = ctx.createLinearGradient(0, 0, width, height);
     gradient.addColorStop(0, '#1B5E20');
     gradient.addColorStop(0.5, '#0D3B10');
@@ -571,7 +748,6 @@ const App = (function() {
     ctx.fillStyle = gradient;
     ctx.fillRect(0, 0, width, height);
 
-    // Decorative pattern
     ctx.strokeStyle = 'rgba(212, 175, 55, 0.15)';
     ctx.lineWidth = 2;
     for (let i = 0; i < 20; i++) {
@@ -580,23 +756,19 @@ const App = (function() {
       ctx.stroke();
     }
 
-    // Border
     ctx.strokeStyle = '#D4AF37';
     ctx.lineWidth = 8;
     ctx.strokeRect(40, 40, width - 80, height - 80);
 
-    // Inner border
     ctx.strokeStyle = 'rgba(212, 175, 55, 0.5)';
     ctx.lineWidth = 2;
     ctx.strokeRect(60, 60, width - 120, height - 120);
 
-    // Title
     ctx.fillStyle = '#D4AF37';
     ctx.font = 'bold 48px "Noto Kufi Arabic", sans-serif';
     ctx.textAlign = 'center';
     ctx.fillText(state.currentDhikr.title, width/2, 140);
 
-    // Text
     ctx.fillStyle = '#FFFFFF';
     ctx.font = '36px "Noto Kufi Arabic", sans-serif';
 
@@ -619,23 +791,20 @@ const App = (function() {
     }
     ctx.fillText(line, width/2, y);
 
-    // Count
     ctx.fillStyle = '#D4AF37';
     ctx.font = 'bold 40px "Noto Kufi Arabic", sans-serif';
     ctx.fillText(`التكرار: ${state.currentDhikr.count}`, width/2, height - 180);
 
-    // App name
     ctx.fillStyle = 'rgba(255,255,255,0.6)';
     ctx.font = '28px "Noto Kufi Arabic", sans-serif';
-    ctx.fillText('تطبيق أذكار الشيوخ', width/2, height - 100);
+    ctx.fillText('تطبيق رفيقي الذكر', width/2, height - 100);
 
-    // Share
     canvas.toBlob(async (blob) => {
       const file = new File([blob], 'dhikr.png', { type: 'image/png' });
       if (navigator.share && navigator.canShare && navigator.canShare({ files: [file] })) {
         try {
           await navigator.share({ files: [file], title: state.currentDhikr.title });
-        } catch (e) { /* cancelled */ }
+        } catch (e) { }
       } else {
         const url = URL.createObjectURL(blob);
         const a = document.createElement('a');
@@ -655,16 +824,6 @@ const App = (function() {
     dom.headerTitle.textContent = 'لوحة الإدارة';
     dom.backBtn.classList.remove('hidden');
     dom.backBtn.onclick = () => { window.location.hash = 'home'; };
-
-    if (!state.adminLoggedIn) {
-      if (dom.adminLogin) dom.adminLogin.classList.remove('hidden');
-      if (dom.adminPanel) dom.adminPanel.classList.remove('active');
-      return;
-    }
-
-    if (dom.adminLogin) dom.adminLogin.classList.add('hidden');
-    if (dom.adminPanel) dom.adminPanel.classList.add('active');
-
     renderAdminTable();
   }
 
@@ -694,16 +853,7 @@ const App = (function() {
     `).join('');
   }
 
-  function loginAdmin() {
-    const pinInput = document.querySelector('.admin-pin-input');
-    if (pinInput && pinInput.value === '0000') {
-      state.adminLoggedIn = true;
-      showToast('✅ تم تسجيل الدخول', 'success');
-      renderAdmin();
-    } else {
-      showToast('❌ رمز غير صحيح');
-    }
-  }
+
 
   function editDhikr(sheikhId, catId, dhikrId) {
     const sheikh = state.azkarData[sheikhId];
@@ -736,14 +886,13 @@ const App = (function() {
     dhikr.count = parseInt(document.querySelector('#edit-count').value) || 1;
     dhikr.reference = document.querySelector('#edit-ref').value;
 
-    // Save to localStorage edits
-    const edits = JSON.parse(localStorage.getItem('azkar_edits') || '{}');
+    const edits = JSON.parse(localStorage.getItem('rafeeqi_edits') || '{}');
     if (!edits[sheikhId]) edits[sheikhId] = {};
     if (!edits[sheikhId][catId]) edits[sheikhId][catId] = [];
     const idx = edits[sheikhId][catId].findIndex(e => e.id === dhikrId);
     if (idx >= 0) edits[sheikhId][catId][idx] = { ...dhikr };
     else edits[sheikhId][catId].push({ ...dhikr });
-    localStorage.setItem('azkar_edits', JSON.stringify(edits));
+    localStorage.setItem('rafeeqi_edits', JSON.stringify(edits));
 
     dom.modalOverlay.classList.remove('active');
     renderAdminTable();
@@ -758,14 +907,13 @@ const App = (function() {
     const idx = cat.azkar.findIndex(a => a.id === dhikrId);
     if (idx >= 0) cat.azkar.splice(idx, 1);
 
-    // Save deletion to localStorage
-    const edits = JSON.parse(localStorage.getItem('azkar_edits') || '{}');
+    const edits = JSON.parse(localStorage.getItem('rafeeqi_edits') || '{}');
     if (!edits[sheikhId]) edits[sheikhId] = {};
     if (!edits[sheikhId][catId]) edits[sheikhId][catId] = [];
     const editIdx = edits[sheikhId][catId].findIndex(e => e.id === dhikrId);
     if (editIdx >= 0) edits[sheikhId][catId][editIdx]._deleted = true;
     else edits[sheikhId][catId].push({ id: dhikrId, _deleted: true });
-    localStorage.setItem('azkar_edits', JSON.stringify(edits));
+    localStorage.setItem('rafeeqi_edits', JSON.stringify(edits));
 
     renderAdminTable();
     showToast('🗑️ تم الحذف');
@@ -784,6 +932,9 @@ const App = (function() {
     document.documentElement.setAttribute('data-theme', state.settings.darkMode ? 'dark' : 'light');
     if (dom.themeBtn) {
       dom.themeBtn.textContent = state.settings.darkMode ? '☀️' : '🌙';
+    }
+    if (dom.themeColor) {
+      dom.themeColor.setAttribute('content', state.settings.darkMode ? '#0A0A0A' : '#1B5E20');
     }
   }
 
@@ -808,24 +959,15 @@ const App = (function() {
       settings: state.settings,
       counters: state.counters
     };
-    localStorage.setItem('azkar_app_state', JSON.stringify(toSave));
+    localStorage.setItem('rafeeqi_dhikr_state', JSON.stringify(toSave));
   }
 
   function loadState() {
-    const saved = JSON.parse(localStorage.getItem('azkar_app_state') || '{}');
+    const saved = JSON.parse(localStorage.getItem('rafeeqi_dhikr_state') || '{}');
     state.favorites = saved.favorites || [];
     state.lastRead = saved.lastRead || null;
     state.settings = { ...state.settings, ...(saved.settings || {}) };
     state.counters = saved.counters || {};
-  }
-
-  // ============================================
-  // Service Worker
-  // ============================================
-  function registerSW() {
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js').catch(() => {});
-    }
   }
 
   // ============================================
@@ -836,7 +978,6 @@ const App = (function() {
 
     if (dom.themeBtn) dom.themeBtn.onclick = toggleTheme;
 
-    // Counter
     const counterMain = document.querySelector('.counter-main');
     if (counterMain) counterMain.onclick = incrementCounter;
 
@@ -845,16 +986,13 @@ const App = (function() {
 
     if (dom.favBtn) dom.favBtn.onclick = toggleFavorite;
 
-    // Share
     const shareBtn = document.querySelector('.share-btn');
     if (shareBtn) shareBtn.onclick = shareText;
 
     const shareImgBtn = document.querySelector('.share-img-btn');
     if (shareImgBtn) shareImgBtn.onclick = shareImage;
 
-    // Admin
-    const loginBtn = document.querySelector('.admin-login-btn');
-    if (loginBtn) loginBtn.onclick = loginAdmin;
+
 
     const saveEditBtn = document.querySelector('.save-edit-btn');
     if (saveEditBtn) saveEditBtn.onclick = saveEdit;
@@ -862,12 +1000,14 @@ const App = (function() {
     const cancelEditBtn = document.querySelector('.cancel-edit-btn');
     if (cancelEditBtn) cancelEditBtn.onclick = () => dom.modalOverlay.classList.remove('active');
 
-    // Modal overlay click
     if (dom.modalOverlay) {
       dom.modalOverlay.onclick = (e) => {
         if (e.target === dom.modalOverlay) dom.modalOverlay.classList.remove('active');
       };
     }
+
+    if (dom.pwaInstallBtn) dom.pwaInstallBtn.onclick = installPWA;
+    if (dom.pwaDismissBtn) dom.pwaDismissBtn.onclick = dismissPwaBanner;
   }
 
   // ============================================
@@ -878,9 +1018,9 @@ const App = (function() {
     goToAzkar,
     goToDhikr,
     editDhikr,
-    deleteDhikr
+    deleteDhikr,
+    updateApp
   };
 })();
 
-// Start app
 document.addEventListener('DOMContentLoaded', App.init);

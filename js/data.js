@@ -1,4 +1,4 @@
-// Azkar Application Data
+// Rafeeqi Al-Dhikrlication Data
 const AZKAR_DATA = {
   "al-shaarawi": {
     id: "al-shaarawi",
