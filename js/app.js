@@ -9,7 +9,7 @@ const App = (function() {
   let state = {
     currentSheikh: null,
     currentDhikr: null,
-    currentCategory: 'all',
+    
     favorites: [],
     lastRead: null,
     settings: {
@@ -85,7 +85,6 @@ const App = (function() {
     dom.sheikhHeaderImg = document.querySelector('.sheikh-header-img');
     dom.sheikhHeaderInfo = document.querySelector('.sheikh-header-info');
     dom.searchInput = document.querySelector('.search-input');
-    dom.categoriesScroll = document.querySelector('.categories-scroll');
     dom.azkarList = document.querySelector('.azkar-list');
     dom.dhikrText = document.querySelector('.dhikr-text');
     dom.dhikrReference = document.querySelector('.dhikr-reference');
@@ -100,7 +99,6 @@ const App = (function() {
     dom.modalTitle = document.querySelector('.modal-header');
     dom.toast = document.querySelector('.toast');
 
-    dom.offlineIndicator = document.getElementById('offline-indicator');
     dom.appStatus = document.getElementById('app-status');
     dom.themeColor = document.getElementById('theme-color');
   }
@@ -147,35 +145,11 @@ const App = (function() {
       showAppStatus();
     });
 
-    // Online/Offline detection
-    window.addEventListener('online', () => {
-      hideOfflineIndicator();
-      showToast('✅ تم استعادة الاتصال', 'success');
-    });
-
-    window.addEventListener('offline', () => {
-      showOfflineIndicator();
-      showToast('📡 أنت في وضع عدم الاتصال');
-    });
-
-    // Initial offline check
-    if (!navigator.onLine) {
-      showOfflineIndicator();
-    }
-
     // Display mode change
     window.matchMedia('(display-mode: standalone)').addEventListener('change', (e) => {
       pwaState.isStandalone = e.matches;
       if (e.matches) showAppStatus();
     });
-  }
-
-  function showOfflineIndicator() {
-    if (dom.offlineIndicator) dom.offlineIndicator.classList.add('show');
-  }
-
-  function hideOfflineIndicator() {
-    if (dom.offlineIndicator) dom.offlineIndicator.classList.remove('show');
   }
 
   function showAppStatus() {
@@ -304,7 +278,6 @@ const App = (function() {
       `;
     }
 
-    renderCategories(sheikh);
     renderAzkarItems(sheikh);
 
     if (dom.searchInput) {
@@ -313,30 +286,7 @@ const App = (function() {
     }
   }
 
-  function renderCategories(sheikh) {
-    if (!dom.categoriesScroll) return;
 
-    const allCount = sheikh.categories.reduce((sum, cat) => sum + cat.azkar.length, 0);
-
-    dom.categoriesScroll.innerHTML = `
-      <button class="category-chip ${state.currentCategory === 'all' ? 'active' : ''}" data-cat="all">
-        الكل (${allCount})
-      </button>
-      ${sheikh.categories.map(cat => `
-        <button class="category-chip ${state.currentCategory === cat.id ? 'active' : ''}" data-cat="${cat.id}">
-          ${cat.name} (${cat.azkar.length})
-        </button>
-      `).join('')}
-    `;
-
-    dom.categoriesScroll.querySelectorAll('.category-chip').forEach(chip => {
-      chip.onclick = () => {
-        state.currentCategory = chip.dataset.cat;
-        renderCategories(sheikh);
-        renderAzkarItems(sheikh);
-      };
-    });
-  }
 
   function renderAzkarItems(sheikh, filterText = '') {
     if (!dom.azkarList) return;
@@ -344,11 +294,9 @@ const App = (function() {
     let azkarToShow = [];
 
     sheikh.categories.forEach(cat => {
-      if (state.currentCategory === 'all' || state.currentCategory === cat.id) {
-        cat.azkar.forEach(azkar => {
-          azkarToShow.push({ ...azkar, categoryId: cat.id, categoryName: cat.name });
-        });
-      }
+      cat.azkar.forEach(azkar => {
+        azkarToShow.push({ ...azkar, categoryId: cat.id, categoryName: cat.name });
+      });
     });
 
     if (filterText) {
