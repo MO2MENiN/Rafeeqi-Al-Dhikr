@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#1B5E20">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="description" content="تطبيق أذكار الشيوخ - أذكار إسلامية للشيخ الشعراوي والشيخ إبراهيم الأمير">
+  <title>أذكار الشيوخ</title>
+  <link rel="manifest" href="manifest.json">
+  <link rel="apple-touch-icon" href="images/icons/icon-192x192.png">
+  <link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+  <!-- Desktop Warning -->
+  <div class="desktop-warning">
+    <div class="desktop-warning-content">
+      <div class="icon">📱</div>
+      <h1>أذكار الشيوخ</h1>
+      <p>هذا التطبيق مصمم للهواتف الذكية فقط. يرجى فتحه على هاتفك المحمول للحصول على أفضل تجربة.</p>
+    </div>
+  </div>
+
+  <!-- App Container -->
+  <div class="app-container">
+    <!-- Header -->
+    <header class="app-header">
+      <button class="header-btn left hidden" aria-label="رجوع">❮</button>
+      <h1 class="header-title">أذكار الشيوخ</h1>
+      <button class="header-btn right theme-toggle" aria-label="تبديل الوضع">🌙</button>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Home Page -->
+      <div class="page active" data-page="home">
+        <div class="hero-section">
+          <div class="app-logo">أذكار <span>الشيوخ</span></div>
+          <p class="app-subtitle">أذكار إسلامية مختارة من علماء الأمة</p>
+        </div>
+
+        <div class="last-read-card card hidden" style="cursor:pointer; margin-top: -8px;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <span style="font-size:1.5rem;">📖</span>
+            <div>
+              <div style="font-size:0.8rem; color:var(--text-secondary);">آخر قراءة</div>
+              <div class="last-read-title" style="font-weight:700; color:var(--primary);"></div>
+            </div>
+            <span style="margin-right:auto; color:var(--secondary);">❮</span>
+          </div>
+        </div>
+
+        <h2 class="welcome-text">اختر الشيخ</h2>
+        <p class="welcome-desc">اضغط على صورة الشيخ لعرض أذكاره</p>
+
+        <div class="sheikh-grid"></div>
+      </div>
+
+      <!-- Azkar List Page -->
+      <div class="page" data-page="azkar">
+        <div class="sheikh-header">
+          <img src="" alt="" class="sheikh-header-img" loading="lazy">
+          <div class="sheikh-header-info"></div>
+        </div>
+
+        <div class="search-container">
+          <span class="search-icon">🔍</span>
+          <input type="text" class="search-input" placeholder="ابحث في الأذكار..." aria-label="بحث">
+        </div>
+
+        <div class="categories-scroll"></div>
+
+        <div class="azkar-list"></div>
+      </div>
+
+      <!-- Dhikr Detail Page -->
+      <div class="page" data-page="dhikr">
+        <div class="dhikr-container">
+          <div class="dhikr-text-card">
+            <p class="dhikr-text"></p>
+            <span class="dhikr-reference"></span>
+          </div>
+
+          <div class="font-size-controls">
+            <button class="font-size-btn font-decrease" aria-label="تصغير الخط">−</button>
+            <span class="font-size-label">1.3rem</span>
+            <button class="font-size-btn font-increase" aria-label="تكبير الخط">+</button>
+          </div>
+
+          <div class="counter-section">
+            <div class="counter-display">
+              <button class="counter-btn reset-btn" aria-label="إعادة">↺</button>
+
+              <div class="counter-main" aria-label="عداد التسبيح">
+                <div class="counter-ring"></div>
+                <div class="counter-inner">
+                  <span class="counter-current">0</span>
+                  <span class="counter-target">/ 0</span>
+                </div>
+              </div>
+
+              <button class="counter-btn" style="visibility:hidden;">↺</button>
+            </div>
+
+            <div class="counter-actions">
+              <button class="counter-action-btn fav-btn" aria-label="المفضلة">
+                <span class="icon">☆</span>
+                <span>المفضلة</span>
+              </button>
+              <button class="counter-action-btn share-btn" aria-label="مشاركة">
+                <span class="icon">📤</span>
+                <span>مشاركة</span>
+              </button>
+              <button class="counter-action-btn share-img-btn" aria-label="مشاركة صورة">
+                <span class="icon">🖼️</span>
+                <span>صورة</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Favorites Page -->
+      <div class="page" data-page="favorites">
+        <h2 class="welcome-text">المفضلة</h2>
+        <div class="favorites-list azkar-list"></div>
+      </div>
+
+      <!-- Admin Page -->
+      <div class="page" data-page="admin">
+        <div class="admin-login">
+          <div class="empty-state">
+            <div class="empty-state-icon">🔐</div>
+            <h3>لوحة الإدارة</h3>
+            <p>أدخل رمز الدخول</p>
+          </div>
+          <input type="password" class="admin-pin-input" placeholder="••••" maxlength="4" inputmode="numeric">
+          <button class="admin-btn admin-login-btn">دخول</button>
+          <p style="margin-top:12px; font-size:0.8rem; color:var(--text-secondary);">الرمز الافتراضي: 0000</p>
+        </div>
+
+        <div class="admin-panel">
+          <h2 class="welcome-text">إدارة الأذكار</h2>
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>العنوان</th>
+                <th>الشيخ</th>
+                <th>التصنيف</th>
+                <th>التكرار</th>
+                <th>الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-page="home" onclick="window.location.hash='home'">
+        <span class="icon">🏠</span>
+        <span>الرئيسية</span>
+      </button>
+      <button class="nav-item" data-page="favorites" onclick="window.location.hash='favorites'">
+        <span class="icon">⭐</span>
+        <span>المفضلة</span>
+      </button>
+      <button class="nav-item" data-page="admin" onclick="window.location.hash='admin'">
+        <span class="icon">⚙️</span>
+        <span>الإدارة</span>
+      </button>
+    </nav>
+
+    <!-- Edit Modal -->
+    <div class="modal-overlay">
+      <div class="modal">
+        <h3 class="modal-header">تعديل الذكر</h3>
+        <input type="hidden" id="edit-sheikh">
+        <input type="hidden" id="edit-cat">
+        <input type="hidden" id="edit-id">
+        <input type="text" class="modal-input" id="edit-title" placeholder="عنوان الذكر">
+        <textarea class="modal-input" id="edit-text" placeholder="نص الذكر"></textarea>
+        <input type="number" class="modal-input" id="edit-count" placeholder="عدد التكرار" min="1">
+        <input type="text" class="modal-input" id="edit-ref" placeholder="المرجع (اختياري)">
+        <div class="modal-actions">
+          <button class="modal-btn secondary cancel-edit-btn">إلغاء</button>
+          <button class="modal-btn primary save-edit-btn">حفظ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast"></div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
