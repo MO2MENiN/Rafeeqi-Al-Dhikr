@@ -1,11 +1,11 @@
 {
   "name": "رفيقي الذكر - Rafeeqi Al-Dhikr",
   "short_name": "رفيقي الذكر",
-  "description": "تطبيق أذكار إسلامية للشيخ الشعراوي والشيخ إبراهيم الأمير - يعمل بدون إنترنت",
+  "description": "تطبيق أذكار وأدعية إسلامية - يعمل بدون إنترنت",
   "start_url": "/",
   "display": "standalone",
-  "background_color": "#F5F5F0",
-  "theme_color": "#1B5E20",
+  "background_color": "#232B1E",
+  "theme_color": "#37472D",
   "orientation": "portrait",
   "scope": "/",
   "id": "/",
@@ -61,18 +61,11 @@
   ],
   "screenshots": [
     {
-      "src": "images/screenshots/home.png",
-      "sizes": "1080x1920",
+      "src": "images/splash/splash-750x1334.png",
+      "sizes": "750x1334",
       "type": "image/png",
       "form_factor": "narrow",
       "label": "الصفحة الرئيسية"
-    },
-    {
-      "src": "images/screenshots/dhikr.png",
-      "sizes": "1080x1920",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "صفحة الذكر"
     }
   ],
   "categories": ["lifestyle", "education", "books"],

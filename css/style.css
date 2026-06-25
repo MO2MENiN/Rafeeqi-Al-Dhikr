@@ -6,21 +6,21 @@
 /* Google Fonts Import */
 @import url('https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800&family=Tajawal:wght@400;500;700&family=Noto+Kufi+Arabic:wght@400;600;700&display=swap');
 
-/* CSS Variables */
+/* CSS Variables - Matching new icon colors */
 :root {
-  --primary: #1B5E20;
-  --primary-light: #2E7D32;
-  --primary-dark: #0D3B10;
-  --secondary: #D4AF37;
-  --secondary-light: #F4D03F;
-  --secondary-dark: #B7950B;
-  --bg: #F5F5F0;
+  --primary: #37472D;
+  --primary-light: #4A5D3F;
+  --primary-dark: #232B1E;
+  --secondary: #C8A84B;
+  --secondary-light: #E0C878;
+  --secondary-dark: #A0883A;
+  --bg: #F0F0E8;
   --surface: #FFFFFF;
   --surface-elevated: #FFFFFF;
-  --text: #1A1A1A;
-  --text-secondary: #5A5A5A;
+  --text: #1A1D16;
+  --text-secondary: #5A5D50;
   --text-inverse: #FFFFFF;
-  --border: #E8E8E0;
+  --border: #E0E0D8;
   --shadow: 0 2px 12px rgba(0,0,0,0.06);
   --shadow-lg: 0 8px 32px rgba(0,0,0,0.12);
   --radius: 20px;
@@ -35,19 +35,19 @@
 }
 
 [data-theme="dark"] {
-  --primary: #2E7D32;
-  --primary-light: #4CAF50;
-  --primary-dark: #1B5E20;
-  --secondary: #F4D03F;
-  --secondary-light: #F7DC6F;
-  --secondary-dark: #D4AF37;
-  --bg: #0A0A0A;
-  --surface: #1A1A1A;
-  --surface-elevated: #242424;
-  --text: #F0F0F0;
-  --text-secondary: #A0A0A0;
-  --text-inverse: #1A1A1A;
-  --border: #333333;
+  --primary: #4A5D3F;
+  --primary-light: #5D7350;
+  --primary-dark: #232B1E;
+  --secondary: #E0C878;
+  --secondary-light: #F0E0A0;
+  --secondary-dark: #C8A84B;
+  --bg: #0D0F0C;
+  --surface: #1A1D16;
+  --surface-elevated: #232B1E;
+  --text: #F0F0E8;
+  --text-secondary: #A0A090;
+  --text-inverse: #1A1D16;
+  --border: #2A3025;
   --shadow: 0 2px 12px rgba(0,0,0,0.3);
   --shadow-lg: 0 8px 32px rgba(0,0,0,0.5);
 }
@@ -884,7 +884,7 @@ body {
 }
 
 .admin-action-btn.delete {
-  background: #C62828;
+  background: #B54A4A;
   color: white;
 }
 

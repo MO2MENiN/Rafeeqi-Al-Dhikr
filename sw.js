@@ -35,25 +35,25 @@ const IMAGE_ASSETS = [
 // INSTALL - Pre-cache static assets
 // ============================================
 self.addEventListener('install', (event) => {
-  console.log('[SW] Installing...');
+  console.log('[رفيقي الذكر SW] Installing...');
 
   event.waitUntil(
     Promise.all([
       // Cache static files
       caches.open(STATIC_CACHE).then(cache => {
-        console.log('[SW] Caching static assets');
+        console.log('[رفيقي الذكر SW] Caching static assets');
         return cache.addAll(STATIC_ASSETS);
       }),
       // Cache images
       caches.open(IMAGE_CACHE).then(cache => {
-        console.log('[SW] Caching image assets');
+        console.log('[رفيقي الذكر SW] Caching image assets');
         return cache.addAll(IMAGE_ASSETS);
       })
     ]).then(() => {
-      console.log('[SW] Install complete');
+      console.log('[رفيقي الذكر SW] Install complete');
       return self.skipWaiting();
     }).catch(err => {
-      console.error('[SW] Install failed:', err);
+      console.error('[رفيقي الذكر SW] Install failed:', err);
     })
   );
 });
@@ -62,7 +62,7 @@ self.addEventListener('install', (event) => {
 // ACTIVATE - Clean old caches
 // ============================================
 self.addEventListener('activate', (event) => {
-  console.log('[SW] Activating...');
+  console.log('[رفيقي الذكر SW] Activating...');
 
   event.waitUntil(
     caches.keys().then(cacheNames => {
@@ -73,12 +73,12 @@ self.addEventListener('activate', (event) => {
                    !name.includes(CACHE_VERSION);
           })
           .map(name => {
-            console.log('[SW] Deleting old cache:', name);
+            console.log('[رفيقي الذكر SW] Deleting old cache:', name);
             return caches.delete(name);
           })
       );
     }).then(() => {
-      console.log('[SW] Claiming clients');
+      console.log('[رفيقي الذكر SW] Claiming clients');
       return self.clients.claim();
     })
   );
@@ -219,7 +219,7 @@ self.addEventListener('sync', (event) => {
 
 async function syncFavorites() {
   // Future: sync favorites with server
-  console.log('[SW] Syncing favorites...');
+  console.log('[رفيقي الذكر SW] Syncing favorites...');
 }
 
 // ============================================
@@ -279,4 +279,4 @@ self.addEventListener('message', (event) => {
   }
 });
 
-console.log('[SW] Service Worker loaded');
+console.log('[رفيقي الذكر SW] Service Worker loaded');

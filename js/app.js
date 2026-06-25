@@ -100,10 +100,6 @@ const App = (function() {
     dom.modalTitle = document.querySelector('.modal-header');
     dom.toast = document.querySelector('.toast');
 
-    // PWA elements
-    dom.pwaBanner = document.getElementById('pwa-banner');
-    dom.pwaInstallBtn = document.getElementById('pwa-install-btn');
-    dom.pwaDismissBtn = document.getElementById('pwa-dismiss-btn');
     dom.offlineIndicator = document.getElementById('offline-indicator');
     dom.updateBanner = document.getElementById('update-banner');
     dom.appStatus = document.getElementById('app-status');
@@ -155,21 +151,10 @@ const App = (function() {
       });
     }
 
-    // Before Install Prompt
-    window.addEventListener('beforeinstallprompt', (e) => {
-      e.preventDefault();
-      pwaState.deferredPrompt = e;
-
-      if (!pwaState.isStandalone && !state.settings.pwaDismissed) {
-        setTimeout(() => showPwaBanner(), 2000);
-      }
-    });
-
     // App installed
     window.addEventListener('appinstalled', () => {
       pwaState.deferredPrompt = null;
       pwaState.isInstalled = true;
-      hidePwaBanner();
       showToast('🎉 تم تثبيت التطبيق بنجاح!', 'success');
       showAppStatus();
     });
@@ -195,37 +180,6 @@ const App = (function() {
       pwaState.isStandalone = e.matches;
       if (e.matches) showAppStatus();
     });
-  }
-
-  function showPwaBanner() {
-    if (dom.pwaBanner) dom.pwaBanner.classList.add('show');
-  }
-
-  function hidePwaBanner() {
-    if (dom.pwaBanner) dom.pwaBanner.classList.remove('show');
-  }
-
-  async function installPWA() {
-    if (!pwaState.deferredPrompt) {
-      showToast('التطبيق غير متاح للتثبيت على هذا الجهاز');
-      return;
-    }
-
-    pwaState.deferredPrompt.prompt();
-    const { outcome } = await pwaState.deferredPrompt.userChoice;
-
-    if (outcome === 'accepted') {
-      pwaState.isInstalled = true;
-      hidePwaBanner();
-    }
-
-    pwaState.deferredPrompt = null;
-  }
-
-  function dismissPwaBanner() {
-    hidePwaBanner();
-    state.settings.pwaDismissed = true;
-    saveState();
   }
 
   function showOfflineIndicator() {
@@ -934,7 +888,7 @@ const App = (function() {
       dom.themeBtn.textContent = state.settings.darkMode ? '☀️' : '🌙';
     }
     if (dom.themeColor) {
-      dom.themeColor.setAttribute('content', state.settings.darkMode ? '#0A0A0A' : '#1B5E20');
+      dom.themeColor.setAttribute('content', state.settings.darkMode ? '#0D0F0C' : '#37472D');
     }
   }
 
@@ -1006,8 +960,7 @@ const App = (function() {
       };
     }
 
-    if (dom.pwaInstallBtn) dom.pwaInstallBtn.onclick = installPWA;
-    if (dom.pwaDismissBtn) dom.pwaDismissBtn.onclick = dismissPwaBanner;
+
   }
 
   // ============================================
