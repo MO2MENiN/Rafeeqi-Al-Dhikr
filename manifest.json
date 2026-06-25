@@ -59,15 +59,6 @@
       "purpose": "any maskable"
     }
   ],
-  "screenshots": [
-    {
-      "src": "images/splash/splash-750x1334.png",
-      "sizes": "750x1334",
-      "type": "image/png",
-      "form_factor": "narrow",
-      "label": "الصفحة الرئيسية"
-    }
-  ],
   "categories": ["lifestyle", "education", "books"],
   "lang": "ar",
   "dir": "rtl",
