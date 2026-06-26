@@ -10,8 +10,8 @@
   <meta name="application-name" content="رفيقي الذكر">
   <meta name="msapplication-TileColor" content="#37472D">
   <meta name="msapplication-TileImage" content="images/icons/icon-144x144.png">
-  <meta name="description" content="تطبيق أذكار إسلامية للشيخ الشعراوي والشيخ إبراهيم الأمير - يعمل بدون إنترنت">
-  <meta name="keywords" content="أذكار, تسبيح, قرآن, إسلام, الشعراوي, الأمير, دعاء, صلاة">
+  <meta name="description" content="تطبيق أذكار إسلامية للشيخ الشعراوي والشيخ إبراهيم الأمير والصلاة العظيمية - يعمل بدون إنترنت">
+  <meta name="keywords" content="أذكار, تسبيح, قرآن, إسلام, الشعراوي, الأمير, الصلاة العظيمية, دعاء, صلاة">
 
   <title>رفيقي الذكر</title>
 
@@ -140,7 +140,6 @@
       opacity: 1;
     }
   </style>
-<base target="_blank">
 </head>
 <body>
   <!-- Desktop Warning -->
@@ -170,7 +169,6 @@
       <div class="page active" data-page="home">
         <div class="hero-section">
           <div class="app-logo">أذكار <span>الشيوخ</span></div>
-          
         </div>
 
         <div class="last-read-card card hidden" style="cursor:pointer; margin-top: -8px;">
@@ -184,10 +182,7 @@
           </div>
         </div>
 
-        
-
         <div class="sheikh-grid"></div>
-
       </div>
 
       <!-- Azkar List Page -->
@@ -276,47 +271,6 @@
           </table>
         </div>
       </div>
-
-      <!-- Alsala Alazimia Page -->
-      <div class="page" data-page="alsala-alazimia">
-        <div class="alsala-hero">
-          <div class="alsala-icon">🕌</div>
-          <h2 class="alsala-title">الصلاة العظيمية</h2>
-          <p class="alsala-subtitle">للشيخ سيدي أحمد بن إدريس رحمه الله</p>
-        </div>
-
-        <div class="alsala-tabs">
-          <button class="alsala-tab active" data-tab="tashkeel" onclick="App.switchAlsalaTab('tashkeil')">بالتشكيل</button>
-          <button class="alsala-tab" data-tab="plain" onclick="App.switchAlsalaTab('plain')">بدون تشكيل</button>
-        </div>
-
-        <div class="alsala-content">
-          <div class="alsala-text-card" data-tab-content="tashkeel">
-            <div class="alsala-badge">📿 بالتشكيل</div>
-            <p class="alsala-text tashkeel">
-              اللَّهُمَّ إِنِّي أَسْأَلُكَ بِنُورِ وَجْهِ الله الْعَظِيمِ الَّذِي مَلأَ أَرْكَانَ عَرْشِ الله الْعَظِيمِ وَقَامَتْ بِهِ عَوَالِمُ الله الْعَظِيمِ أَنْ تُصَلِّيَ عَلَى مَوْلاَنَا مُحَمَّدٍ ذِي الْقَدْرِ الْعَظِيمِ وَعَلَى آلِ نَبِيِّ الله الْعَظِيمِ بِقَدْرِ عظمة ذَاتِ الله الْعَظِيمِ فِي كُلِّ لَمْحَةٍ وَنَفَسٍ عَدَد مَا فِي عِلْمِ الله الْعَظِيمِ صَلاَةً دَائِمَةً بِدَوَامِ الله الْعَظِيمِ تَعْظِيماً لِحَقِّكَ يَا مَوْلاَنَا يَا مُحَمَّدُ يَا ذَا الْخُلُقِ الْعَظِيمِ وَسَلِّمْ عَلَيْهِ وَعَلَى آلِهِ مِثْلَ ذَلِكَ وَاجْمَعْ بَيْنِي وَبَيْنَهُ كَمَا جَمَعْتَ بَيْنَ الرُّوحِ وَالنَّفْسِ ظَاهِراً وَبَاطِناً يَقَظَةً وَمَنَاماً وَاجْعَلْهُ يَا رَبِّ رُوحاً لِذَاتِي مِنْ جَمِيعِ الْوُجُوهِ فِي الدُّنْيَا قَبْلَ الآخِرَةِ يَا عَظِيمُ.
-            </p>
-          </div>
-          <div class="alsala-text-card hidden" data-tab-content="plain">
-            <div class="alsala-badge">📿 بدون تشكيل</div>
-            <p class="alsala-text plain">
-              اللهم إني أسألك بنور وجه الله العظيم الذي ملأ أركان عرش الله العظيم وقامت به عوالم الله العظيم أن تصلي على مولانا محمد ذي القدر العظيم وعلى آل نبي الله العظيم بقدر عظمة ذات الله العظيم في كل لمحة ونفس عدد ما في علم الله العظيم صلاة دائمة بدوام الله العظيم تعظيما لحقك يا مولانا يا محمد يا ذا الخلق العظيم وسلم عليه وعلى آله مثل ذلك واجمع بيني وبينه كما جمعت بين الروح والنفس ظاهرا وباطنا يقظة ومناما واجعله يا رب روحا لذاتي من جميع الوجوه في الدنيا قبل الآخرة يا عظيم.
-            </p>
-          </div>
-        </div>
-
-        <div class="alsala-actions">
-          <button class="alsala-action-btn" onclick="App.copyAlsala()">
-            <span class="icon">📋</span>
-            <span>نسخ النص</span>
-          </button>
-          <button class="alsala-action-btn" onclick="App.shareAlsala()">
-            <span class="icon">📤</span>
-            <span>مشاركة</span>
-          </button>
-        </div>
-      </div>
-
     </main>
 
     <!-- Bottom Navigation -->

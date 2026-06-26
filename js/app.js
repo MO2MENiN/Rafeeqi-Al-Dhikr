@@ -9,7 +9,6 @@ const App = (function() {
   let state = {
     currentSheikh: null,
     currentDhikr: null,
-    
     favorites: [],
     lastRead: null,
     settings: {
@@ -28,8 +27,7 @@ const App = (function() {
     deferredPrompt: null,
     isInstalled: false,
     isStandalone: false,
-    swRegistration: null,
-    
+    swRegistration: null
   };
 
   // DOM Elements cache
@@ -107,7 +105,6 @@ const App = (function() {
   // PWA Functions
   // ============================================
   function initPWA() {
-    // Check if running as standalone app
     pwaState.isStandalone = window.matchMedia('(display-mode: standalone)').matches ||
                             window.navigator.standalone === true;
 
@@ -115,27 +112,18 @@ const App = (function() {
       showAppStatus();
     }
 
-    // Register Service Worker
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('sw.js')
         .then(reg => {
           pwaState.swRegistration = reg;
           console.log('[App] SW registered:', reg.scope);
-
-          // Periodic update check (every hour)
-          setInterval(() => {
-            reg.update();
-          }, 3600000);
+          setInterval(() => { reg.update(); }, 3600000);
         })
         .catch(err => console.log('[App] SW registration failed:', err));
 
-      // Listen for messages from SW
-      navigator.serviceWorker.addEventListener('message', (event) => {
-        // Update banner removed
-      });
+      navigator.serviceWorker.addEventListener('message', (event) => {});
     }
 
-    // App installed
     window.addEventListener('appinstalled', () => {
       pwaState.deferredPrompt = null;
       pwaState.isInstalled = true;
@@ -143,7 +131,6 @@ const App = (function() {
       showAppStatus();
     });
 
-    // Display mode change
     window.matchMedia('(display-mode: standalone)').addEventListener('change', (e) => {
       pwaState.isStandalone = e.matches;
       if (e.matches) showAppStatus();
@@ -156,8 +143,6 @@ const App = (function() {
       setTimeout(() => dom.appStatus.classList.remove('show'), 3000);
     }
   }
-
-
 
   // ============================================
   // Routing
@@ -189,11 +174,6 @@ const App = (function() {
         showPage('admin');
         renderAdmin();
         break;
-      case 'alsala-alazimia':
-        showPage('alsala-alazimia');
-        renderAlsalaAlazimia();
-        break;
-
       default:
         showPage('home');
         renderHome();
@@ -227,19 +207,7 @@ const App = (function() {
 
     if (!dom.sheikhGrid) return;
 
-    const staticCard = `
-      <div class="sheikh-card" onclick="window.location.hash='alsala-alazimia'">
-        <img src="Alsala-Alazimia.png" alt="الصلاة العظيمية" class="sheikh-avatar" loading="lazy">
-        <div class="sheikh-name">الصلاة العظيمية</div>
-        <div class="sheikh-title">للشيخ سيدي أحمد بن إدريس</div>
-        <div class="sheikh-count">
-          <span>📿</span>
-          <span>دعاء خاص</span>
-        </div>
-      </div>
-    `;
-
-    const dynamicCards = Object.values(state.azkarData).map(sheikh => {
+    dom.sheikhGrid.innerHTML = Object.values(state.azkarData).map(sheikh => {
       const totalAzkar = sheikh.categories.reduce((sum, cat) => sum + cat.azkar.length, 0);
       return `
         <div class="sheikh-card" data-sheikh="${sheikh.id}" onclick="App.goToAzkar('${sheikh.id}')">
@@ -253,8 +221,6 @@ const App = (function() {
         </div>
       `;
     }).join('');
-
-    dom.sheikhGrid.innerHTML = staticCard + dynamicCards;
 
     if (state.lastRead) {
       const lastReadCard = document.querySelector('.last-read-card');
@@ -302,8 +268,6 @@ const App = (function() {
       dom.searchInput.oninput = (e) => searchAzkar(e.target.value, sheikh);
     }
   }
-
-
 
   function renderAzkarItems(sheikh, filterText = '') {
     if (!dom.azkarList) return;
@@ -740,8 +704,6 @@ const App = (function() {
     `).join('');
   }
 
-
-
   function editDhikr(sheikhId, catId, dhikrId) {
     const sheikh = state.azkarData[sheikhId];
     const cat = sheikh.categories.find(c => c.id === catId);
@@ -879,8 +841,6 @@ const App = (function() {
     const shareImgBtn = document.querySelector('.share-img-btn');
     if (shareImgBtn) shareImgBtn.onclick = shareImage;
 
-
-
     const saveEditBtn = document.querySelector('.save-edit-btn');
     if (saveEditBtn) saveEditBtn.onclick = saveEdit;
 
@@ -892,68 +852,6 @@ const App = (function() {
         if (e.target === dom.modalOverlay) dom.modalOverlay.classList.remove('active');
       };
     }
-
-
-  }
-
-
-  // ============================================
-  // Alsala Alazimia Page
-  // ============================================
-  function renderAlsalaAlazimia() {
-    dom.headerTitle.textContent = 'الصلاة العظيمية';
-    dom.backBtn.classList.remove('hidden');
-    dom.backBtn.onclick = () => { window.location.hash = 'home'; };
-  }
-
-  function switchAlsalaTab(tab) {
-    document.querySelectorAll('.alsala-tab').forEach(t => {
-      t.classList.toggle('active', t.dataset.tab === tab || (tab === 'tashkeil' && t.dataset.tab === 'tashkeel'));
-    });
-    document.querySelectorAll('[data-tab-content]').forEach(c => {
-      const contentTab = c.dataset.tabContent;
-      const isActive = (tab === 'tashkeil' && contentTab === 'tashkeel') || (tab === 'plain' && contentTab === 'plain');
-      c.classList.toggle('hidden', !isActive);
-    });
-  }
-
-  async function copyAlsala() {
-    const activeTab = document.querySelector('.alsala-tab.active');
-    const isTashkeel = activeTab && (activeTab.dataset.tab === 'tashkeel');
-    const text = isTashkeel 
-      ? 'اللَّهُمَّ إِنِّي أَسْأَلُكَ بِنُورِ وَجْهِ الله الْعَظِيمِ الَّذِي مَلأَ أَرْكَانَ عَرْشِ الله الْعَظِيمِ وَقَامَتْ بِهِ عَوَالِمُ الله الْعَظِيمِ أَنْ تُصَلِّيَ عَلَى مَوْلاَنَا مُحَمَّدٍ ذِي الْقَدْرِ الْعَظِيمِ وَعَلَى آلِ نَبِيِّ الله الْعَظِيمِ بِقَدْرِ عظمة ذَاتِ الله الْعَظِيمِ فِي كُلِّ لَمْحَةٍ وَنَفَسٍ عَدَد مَا فِي عِلْمِ الله الْعَظِيمِ صَلاَةً دَائِمَةً بِدَوَامِ الله الْعَظِيمِ تَعْظِيماً لِحَقِّكَ يَا مَوْلاَنَا يَا مُحَمَّدُ يَا ذَا الْخُلُقِ الْعَظِيمِ وَسَلِّمْ عَلَيْهِ وَعَلَى آلِهِ مِثْلَ ذَلِكَ وَاجْمَعْ بَيْنِي وَبَيْنَهُ كَمَا جَمَعْتَ بَيْنَ الرُّوحِ وَالنَّفْسِ ظَاهِراً وَبَاطِناً يَقَظَةً وَمَنَاماً وَاجْعَلْهُ يَا رَبِّ رُوحاً لِذَاتِي مِنْ جَمِيعِ الْوُجُوهِ فِي الدُّنْيَا قَبْلَ الآخِرَةِ يَا عَظِيمُ.'
-      : 'اللهم إني أسألك بنور وجه الله العظيم الذي ملأ أركان عرش الله العظيم وقامت به عوالم الله العظيم أن تصلي على مولانا محمد ذي القدر العظيم وعلى آل نبي الله العظيم بقدر عظمة ذات الله العظيم في كل لمحة ونفس عدد ما في علم الله العظيم صلاة دائمة بدوام الله العظيم تعظيما لحقك يا مولانا يا محمد يا ذا الخلق العظيم وسلم عليه وعلى آله مثل ذلك واجمع بيني وبينه كما جمعت بين الروح والنفس ظاهرا وباطنا يقظة ومناما واجعله يا رب روحا لذاتي من جميع الوجوه في الدنيا قبل الآخرة يا عظيم.';
-
-    try {
-      await navigator.clipboard.writeText(text);
-      showToast('📋 تم نسخ النص', 'success');
-    } catch (e) {
-      showToast('❌ فشل النسخ');
-    }
-  }
-
-  async function shareAlsala() {
-    const activeTab = document.querySelector('.alsala-tab.active');
-    const isTashkeel = activeTab && (activeTab.dataset.tab === 'tashkeel');
-    const text = isTashkeel 
-      ? 'اللَّهُمَّ إِنِّي أَسْأَلُكَ بِنُورِ وَجْهِ الله الْعَظِيمِ الَّذِي مَلأَ أَرْكَانَ عَرْشِ الله الْعَظِيمِ وَقَامَتْ بِهِ عَوَالِمُ الله الْعَظِيمِ أَنْ تُصَلِّيَ عَلَى مَوْلاَنَا مُحَمَّدٍ ذِي الْقَدْرِ الْعَظِيمِ وَعَلَى آلِ نَبِيِّ الله الْعَظِيمِ بِقَدْرِ عظمة ذَاتِ الله الْعَظِيمِ فِي كُلِّ لَمْحَةٍ وَنَفَسٍ عَدَد مَا فِي عِلْمِ الله الْعَظِيمِ صَلاَةً دَائِمَةً بِدَوَامِ الله الْعَظِيمِ تَعْظِيماً لِحَقِّكَ يَا مَوْلاَنَا يَا مُحَمَّدُ يَا ذَا الْخُلُقِ الْعَظِيمِ وَسَلِّمْ عَلَيْهِ وَعَلَى آلِهِ مِثْلَ ذَلِكَ وَاجْمَعْ بَيْنِي وَبَيْنَهُ كَمَا جَمَعْتَ بَيْنَ الرُّوحِ وَالنَّفْسِ ظَاهِراً وَبَاطِناً يَقَظَةً وَمَنَاماً وَاجْعَلْهُ يَا رَبِّ رُوحاً لِذَاتِي مِنْ جَمِيعِ الْوُجُوهِ فِي الدُّنْيَا قَبْلَ الآخِرَةِ يَا عَظِيمُ.'
-      : 'اللهم إني أسألك بنور وجه الله العظيم الذي ملأ أركان عرش الله العظيم وقامت به عوالم الله العظيم أن تصلي على مولانا محمد ذي القدر العظيم وعلى آل نبي الله العظيم بقدر عظمة ذات الله العظيم في كل لمحة ونفس عدد ما في علم الله العظيم صلاة دائمة بدوام الله العظيم تعظيما لحقك يا مولانا يا محمد يا ذا الخلق العظيم وسلم عليه وعلى آله مثل ذلك واجمع بيني وبينه كما جمعت بين الروح والنفس ظاهرا وباطنا يقظة ومناما واجعله يا رب روحا لذاتي من جميع الوجوه في الدنيا قبل الآخرة يا عظيم.';
-
-    const shareText = `الصلاة العظيمية
-للشيخ سيدي أحمد بن إدريس رحمه الله
-
-${text}
-
-من تطبيق رفيقي الذكر`;
-
-    if (navigator.share) {
-      try {
-        await navigator.share({ title: 'الصلاة العظيمية', text: shareText });
-      } catch (e) { }
-    } else {
-      await navigator.clipboard.writeText(shareText);
-      showToast('📋 تم نسخ النص', 'success');
-    }
   }
 
   // ============================================
@@ -964,10 +862,7 @@ ${text}
     goToAzkar,
     goToDhikr,
     editDhikr,
-    deleteDhikr,
-    switchAlsalaTab,
-    copyAlsala,
-    shareAlsala
+    deleteDhikr
   };
 })();
 
