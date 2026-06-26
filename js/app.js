@@ -116,10 +116,12 @@ const App = (function() {
     }
 
     if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('sw.js')
+      // استخدم المسار النسبي مع تحديد scope صريح
+      // هذا يحل مشكلة GitHub Pages مع Organization repositories
+      navigator.serviceWorker.register('./sw.js', { scope: './' })
         .then(reg => {
           pwaState.swRegistration = reg;
-          console.log('[App] SW registered:', reg.scope);
+          console.log('[App] SW registered. Scope:', reg.scope);
           setInterval(() => { reg.update(); }, 3600000);
         })
         .catch(err => console.log('[App] SW registration failed:', err));

@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>رفيقي الذكر</title>
+  <script>
+    // ============================================
+    // GitHub Pages SPA Redirect Fix
+    // يعيد توجيه أي مسار إلى index.html مع الحفاظ على الـ hash
+    // هذا يحل مشكلة iOS PWA عند فتح التطبيق من الشاشة الرئيسية
+    // ============================================
+    (function() {
+      var location = window.location;
+      var base = location.pathname.split('/').slice(0, -1).join('/');
+      
+      // Get the current path segments
+      var pathSegments = location.pathname.split('/');
+      
+      // Find the repo root (for GitHub Pages org repos like /org/repo/)
+      // Redirect to the index with hash routing intact
+      var redirectUrl = location.protocol + '//' + location.host + 
+                        location.pathname.replace(/\/[^\/]*$/, '/') + 
+                        '?' + encodeURIComponent(location.pathname.slice(1) + location.search) +
+                        (location.hash || '');
+      
+      // Simple redirect: go to the folder root (index.html is loaded automatically)
+      var root = location.pathname;
+      // Walk up to find the app root (where index.html lives)
+      // For GitHub Pages: username.github.io/repo-name/ -> that's the root
+      
+      // Detect if we're at a sub-path without index.html
+      // Redirect to the base path of the deployment
+      var basePath = location.pathname.replace(/\/[^\/]*$/, '/');
+      
+      // Store the intended URL in sessionStorage for the app to handle
+      sessionStorage.setItem('pwa_redirect', location.href);
+      
+      // Redirect to index.html
+      window.location.replace(basePath + 'index.html' + location.hash);
+    })();
+  </script>
+</head>
+<body>
+  <div style="display:flex;align-items:center;justify-content:center;height:100vh;background:#232B1E;color:#fff;font-family:sans-serif;text-align:center;">
+    <div>
+      <div style="font-size:3rem;margin-bottom:1rem;">📿</div>
+      <p>جارٍ التحميل...</p>
+    </div>
+  </div>
+</body>
+</html>

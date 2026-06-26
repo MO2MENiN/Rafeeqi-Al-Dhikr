@@ -1,59 +1,81 @@
 // ============================================
 // Rafeeqi Al-Dhikr - Enhanced Service Worker (PWA)
+// GitHub Pages Compatible Version
 // ============================================
 
-const CACHE_VERSION = 'v2';
+const CACHE_VERSION = 'v3';
 const CACHE_NAME = `rafeeqi-dhikr-${CACHE_VERSION}`;
 const STATIC_CACHE = `azkar-static-${CACHE_VERSION}`;
 const IMAGE_CACHE = `azkar-images-${CACHE_VERSION}`;
 const DATA_CACHE = `azkar-data-${CACHE_VERSION}`;
 
-// Assets to cache on install
+// ============================================
+// Dynamic Base URL Detection
+// يكتشف تلقائياً المسار سواء على GitHub Pages أو localhost
+// ============================================
+const BASE_URL = self.registration.scope;
+
+// Build asset URLs relative to the service worker scope
+// هذا يحل مشكلة GitHub Pages Organization repositories
+function asset(path) {
+  // Remove leading slash if present, then prepend scope
+  const cleanPath = path.replace(/^\//, '');
+  return BASE_URL + cleanPath;
+}
+
+// Assets to cache on install - using dynamic base URL
 const STATIC_ASSETS = [
-  '/',
-  '/index.html',
-  '/css/style.css',
-  '/js/data.js',
-  '/js/app.js',
-  '/manifest.json'
+  BASE_URL,
+  asset('index.html'),
+  asset('css/style.css'),
+  asset('js/data.js'),
+  asset('js/app.js'),
+  asset('manifest.json')
 ];
 
 const IMAGE_ASSETS = [
-  '/images/Al-Amir.png',
-  '/images/AlShaarawi.png',
-  '/images/icons/icon-72x72.png',
-  '/images/icons/icon-96x96.png',
-  '/images/icons/icon-128x128.png',
-  '/images/icons/icon-144x144.png',
-  '/images/icons/icon-152x152.png',
-  '/images/icons/icon-192x192.png',
-  '/images/icons/icon-384x384.png',
-  '/images/icons/icon-512x512.png'
+  asset('images/Al-Amir.png'),
+  asset('images/AlShaarawi.png'),
+  asset('images/icons/icon-72x72.png'),
+  asset('images/icons/icon-96x96.png'),
+  asset('images/icons/icon-128x128.png'),
+  asset('images/icons/icon-144x144.png'),
+  asset('images/icons/icon-152x152.png'),
+  asset('images/icons/icon-192x192.png'),
+  asset('images/icons/icon-384x384.png'),
+  asset('images/icons/icon-512x512.png')
 ];
 
 // ============================================
 // INSTALL - Pre-cache static assets
 // ============================================
 self.addEventListener('install', (event) => {
-  console.log('[رفيقي الذكر SW] Installing...');
+  console.log('[رفيقي الذكر SW] Installing... Scope:', BASE_URL);
 
   event.waitUntil(
     Promise.all([
-      // Cache static files
       caches.open(STATIC_CACHE).then(cache => {
-        console.log('[رفيقي الذكر SW] Caching static assets');
-        return cache.addAll(STATIC_ASSETS);
+        console.log('[رفيقي الذكر SW] Caching static assets:', STATIC_ASSETS);
+        return cache.addAll(STATIC_ASSETS).catch(err => {
+          console.warn('[رفيقي الذكر SW] Some static assets failed to cache:', err);
+          // Cache individually to avoid one failure blocking all
+          return Promise.allSettled(
+            STATIC_ASSETS.map(url => cache.add(url).catch(e => console.warn('Failed:', url, e)))
+          );
+        });
       }),
-      // Cache images
       caches.open(IMAGE_CACHE).then(cache => {
         console.log('[رفيقي الذكر SW] Caching image assets');
-        return cache.addAll(IMAGE_ASSETS);
+        return Promise.allSettled(
+          IMAGE_ASSETS.map(url => cache.add(url).catch(e => console.warn('Failed img:', url, e)))
+        );
       })
     ]).then(() => {
       console.log('[رفيقي الذكر SW] Install complete');
       return self.skipWaiting();
     }).catch(err => {
       console.error('[رفيقي الذكر SW] Install failed:', err);
+      return self.skipWaiting();
     })
   );
 });
@@ -69,7 +91,7 @@ self.addEventListener('activate', (event) => {
       return Promise.all(
         cacheNames
           .filter(name => {
-            return name.startsWith('azkar-') && 
+            return (name.startsWith('azkar-') || name.startsWith('rafeeqi-')) &&
                    !name.includes(CACHE_VERSION);
           })
           .map(name => {
@@ -97,7 +119,10 @@ self.addEventListener('fetch', (event) => {
   // Skip chrome-extension and other non-http schemes
   if (!url.protocol.startsWith('http')) return;
 
-  // Strategy: Cache First for static assets
+  // Skip cross-origin requests (fonts, external APIs)
+  if (url.origin !== self.location.origin) return;
+
+  // Strategy: Cache First for static assets (HTML, CSS, JS, JSON)
   if (isStaticAsset(url)) {
     event.respondWith(cacheFirst(request, STATIC_CACHE));
     return;
@@ -106,12 +131,6 @@ self.addEventListener('fetch', (event) => {
   // Strategy: Cache First for images
   if (isImage(request)) {
     event.respondWith(cacheFirst(request, IMAGE_CACHE));
-    return;
-  }
-
-  // Strategy: Network First for data/API
-  if (isDataRequest(url)) {
-    event.respondWith(networkFirst(request, DATA_CACHE));
     return;
   }
 
@@ -124,51 +143,33 @@ self.addEventListener('fetch', (event) => {
 // ============================================
 
 // Cache First - Serve from cache, fallback to network
+// إذا لم يوجد في الكاش، يجلب من الشبكة ويخزن
 async function cacheFirst(request, cacheName) {
   const cache = await caches.open(cacheName);
   const cached = await cache.match(request);
 
   if (cached) {
-    // Refresh cache in background
+    // Refresh cache in background (don't wait)
     fetch(request).then(response => {
-      if (response.ok) cache.put(request, response.clone());
+      if (response && response.ok) cache.put(request, response.clone());
     }).catch(() => {});
     return cached;
   }
 
   try {
     const response = await fetch(request);
-    if (response.ok) {
+    if (response && response.ok) {
       cache.put(request, response.clone());
     }
     return response;
   } catch (error) {
-    // Return offline fallback for HTML
-    if (request.destination === 'document') {
-      return caches.match('/index.html');
+    // Return offline fallback: serve index.html for navigation requests
+    if (request.destination === 'document' || request.mode === 'navigate') {
+      const fallback = await caches.match(BASE_URL + 'index.html') ||
+                       await caches.match(BASE_URL);
+      if (fallback) return fallback;
     }
-    return new Response('Offline - No cached version', { 
-      status: 503,
-      headers: { 'Content-Type': 'text/plain; charset=utf-8' }
-    });
-  }
-}
-
-// Network First - Try network, fallback to cache
-async function networkFirst(request, cacheName) {
-  const cache = await caches.open(cacheName);
-
-  try {
-    const networkResponse = await fetch(request);
-    if (networkResponse.ok) {
-      cache.put(request, networkResponse.clone());
-    }
-    return networkResponse;
-  } catch (error) {
-    const cached = await cache.match(request);
-    if (cached) return cached;
-
-    return new Response('Offline', { 
+    return new Response('Offline - No cached version', {
       status: 503,
       headers: { 'Content-Type': 'text/plain; charset=utf-8' }
     });
@@ -181,7 +182,7 @@ async function staleWhileRevalidate(request, cacheName) {
   const cached = await cache.match(request);
 
   const fetchPromise = fetch(request).then(response => {
-    if (response.ok) {
+    if (response && response.ok) {
       cache.put(request, response.clone());
     }
     return response;
@@ -199,42 +200,50 @@ function isStaticAsset(url) {
 }
 
 function isImage(request) {
-  return request.destination === 'image' || 
-         request.url.match(/\.(png|jpg|jpeg|gif|svg|webp)$/i);
-}
-
-function isDataRequest(url) {
-  return url.pathname.includes('/api/') || 
-         url.pathname.endsWith('.json');
+  return request.destination === 'image' ||
+         /\.(png|jpg|jpeg|gif|svg|webp)$/i.test(request.url);
 }
 
 // ============================================
-// Background Sync (for future features)
+// Message handling from main thread
 // ============================================
-self.addEventListener('sync', (event) => {
-  if (event.tag === 'sync-favorites') {
-    event.waitUntil(syncFavorites());
+self.addEventListener('message', (event) => {
+  if (event.data === 'skipWaiting') {
+    self.skipWaiting();
+  }
+
+  if (event.data === 'getVersion') {
+    if (event.ports && event.ports[0]) {
+      event.ports[0].postMessage(CACHE_VERSION);
+    }
+  }
+
+  if (event.data === 'clearCache') {
+    event.waitUntil(
+      caches.keys().then(names => {
+        return Promise.all(names.map(name => caches.delete(name)));
+      }).then(() => {
+        if (event.ports && event.ports[0]) {
+          event.ports[0].postMessage('Cache cleared');
+        }
+      })
+    );
   }
 });
 
-async function syncFavorites() {
-  // Future: sync favorites with server
-  console.log('[رفيقي الذكر SW] Syncing favorites...');
-}
-
 // ============================================
-// Push Notifications (for future features)
+// Push Notifications
 // ============================================
 self.addEventListener('push', (event) => {
   const data = event.data ? event.data.json() : {};
   const options = {
     body: data.body || 'تذكير بقراءة الأذكار',
-    icon: '/images/icons/icon-192x192.png',
-    badge: '/images/icons/icon-72x72.png',
+    icon: asset('images/icons/icon-192x192.png'),
+    badge: asset('images/icons/icon-72x72.png'),
     dir: 'rtl',
     lang: 'ar',
     vibrate: [100, 50, 100],
-    data: data.url || '/',
+    data: data.url || BASE_URL,
     actions: [
       { action: 'open', title: 'فتح التطبيق' },
       { action: 'close', title: 'إغلاق' }
@@ -251,32 +260,9 @@ self.addEventListener('notificationclick', (event) => {
 
   if (event.action === 'open' || !event.action) {
     event.waitUntil(
-      clients.openWindow(event.notification.data || '/')
+      clients.openWindow(event.notification.data || BASE_URL)
     );
   }
 });
 
-// ============================================
-// Message handling from main thread
-// ============================================
-self.addEventListener('message', (event) => {
-  if (event.data === 'skipWaiting') {
-    self.skipWaiting();
-  }
-
-  if (event.data === 'getVersion') {
-    event.ports[0].postMessage(CACHE_VERSION);
-  }
-
-  if (event.data === 'clearCache') {
-    event.waitUntil(
-      caches.keys().then(names => {
-        return Promise.all(names.map(name => caches.delete(name)));
-      }).then(() => {
-        event.ports[0].postMessage('Cache cleared');
-      })
-    );
-  }
-});
-
-console.log('[رفيقي الذكر SW] Service Worker loaded');
+console.log('[رفيقي الذكر SW] Service Worker loaded. Scope:', BASE_URL);
