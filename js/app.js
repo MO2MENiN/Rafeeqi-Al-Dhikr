@@ -212,11 +212,15 @@ const App = (function() {
 
     dom.sheikhGrid.innerHTML = Object.values(state.azkarData).map(sheikh => {
       const totalAzkar = sheikh.categories.reduce((sum, cat) => sum + cat.azkar.length, 0);
+      // For al-shaarawi: name (big) + shortName (small)
+      // For others: shortName (big) + name (small)
+      const bigName = sheikh.id === 'al-shaarawi' ? sheikh.name : sheikh.shortName;
+      const smallName = sheikh.id === 'al-shaarawi' ? sheikh.shortName : sheikh.name;
       return `
         <div class="sheikh-card" data-sheikh="${sheikh.id}" onclick="App.goToAzkar('${sheikh.id}')">
           <img src="${sheikh.image}" alt="${sheikh.name}" class="sheikh-avatar" loading="lazy">
-          <div class="sheikh-name">${sheikh.name}</div>
-          <div class="sheikh-title">${sheikh.shortName}</div>
+          <div class="sheikh-name">${bigName}</div>
+          <div class="sheikh-title">${smallName}</div>
           <div class="sheikh-count">
             <span>📿</span>
             <span>${totalAzkar} ذكر</span>
