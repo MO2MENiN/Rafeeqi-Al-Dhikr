@@ -227,7 +227,19 @@ const App = (function() {
 
     if (!dom.sheikhGrid) return;
 
-    dom.sheikhGrid.innerHTML = Object.values(state.azkarData).map(sheikh => {
+    const staticCard = `
+      <div class="sheikh-card" onclick="window.location.hash='alsala-alazimia'">
+        <img src="Alsala-Alazimia.png" alt="الصلاة العظيمية" class="sheikh-avatar" loading="lazy">
+        <div class="sheikh-name">الصلاة العظيمية</div>
+        <div class="sheikh-title">للشيخ سيدي أحمد بن إدريس</div>
+        <div class="sheikh-count">
+          <span>📿</span>
+          <span>دعاء خاص</span>
+        </div>
+      </div>
+    `;
+
+    const dynamicCards = Object.values(state.azkarData).map(sheikh => {
       const totalAzkar = sheikh.categories.reduce((sum, cat) => sum + cat.azkar.length, 0);
       return `
         <div class="sheikh-card" data-sheikh="${sheikh.id}" onclick="App.goToAzkar('${sheikh.id}')">
@@ -241,6 +253,8 @@ const App = (function() {
         </div>
       `;
     }).join('');
+
+    dom.sheikhGrid.innerHTML = staticCard + dynamicCards;
 
     if (state.lastRead) {
       const lastReadCard = document.querySelector('.last-read-card');
