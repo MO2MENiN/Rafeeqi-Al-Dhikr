@@ -139,6 +139,59 @@
     .app-status.show {
       opacity: 1;
     }
+
+    /* Tashkeel Toggle Switch */
+    .tashkeel-toggle {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 12px;
+      margin-bottom: 16px;
+      padding: 12px;
+      background: var(--bg);
+      border-radius: var(--radius-sm);
+    }
+    .tashkeel-label {
+      font-size: 0.85rem;
+      color: var(--text-secondary);
+      font-weight: 600;
+    }
+    .toggle-switch {
+      position: relative;
+      width: 52px;
+      height: 28px;
+      background: var(--border);
+      border-radius: 14px;
+      cursor: pointer;
+      transition: background 0.3s;
+      border: none;
+      padding: 0;
+    }
+    .toggle-switch.active {
+      background: linear-gradient(135deg, var(--primary), var(--primary-light));
+    }
+    .toggle-switch::after {
+      content: '';
+      position: absolute;
+      top: 3px;
+      right: 3px;
+      width: 22px;
+      height: 22px;
+      background: white;
+      border-radius: 50%;
+      transition: transform 0.3s;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.2);
+    }
+    .toggle-switch.active::after {
+      transform: translateX(-24px);
+    }
+    .tashkeel-status {
+      font-size: 0.8rem;
+      font-weight: 700;
+      color: var(--primary);
+      min-width: 50px;
+      text-align: center;
+    }
   </style>
 </head>
 <body>
@@ -192,11 +245,6 @@
           <div class="sheikh-header-info"></div>
         </div>
 
-        <div class="search-container">
-          <span class="search-icon">🔍</span>
-          <input type="text" class="search-input" placeholder="ابحث في الأذكار..." aria-label="بحث">
-        </div>
-
         <div class="azkar-list"></div>
       </div>
 
@@ -212,6 +260,13 @@
             <button class="font-size-btn font-decrease" aria-label="تصغير الخط">−</button>
             <span class="font-size-label">1.3rem</span>
             <button class="font-size-btn font-increase" aria-label="تكبير الخط">+</button>
+          </div>
+
+          <!-- Tashkeel Toggle (only for Azimia) -->
+          <div class="tashkeel-toggle hidden" id="tashkeel-toggle">
+            <span class="tashkeel-label">التشكيل</span>
+            <button class="toggle-switch active" id="tashkeel-switch" aria-label="تبديل التشكيل"></button>
+            <span class="tashkeel-status" id="tashkeel-status">مفعل</span>
           </div>
 
           <div class="counter-section">

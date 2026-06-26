@@ -15,7 +15,8 @@ const App = (function() {
       darkMode: false,
       fontSize: 1.3,
       vibration: true,
-      pwaDismissed: false
+      pwaDismissed: false,
+      tashkeelOn: true
     },
     counters: {},
     adminLoggedIn: true,
@@ -82,7 +83,6 @@ const App = (function() {
     dom.sheikhGrid = document.querySelector('.sheikh-grid');
     dom.sheikhHeaderImg = document.querySelector('.sheikh-header-img');
     dom.sheikhHeaderInfo = document.querySelector('.sheikh-header-info');
-    dom.searchInput = document.querySelector('.search-input');
     dom.azkarList = document.querySelector('.azkar-list');
     dom.dhikrText = document.querySelector('.dhikr-text');
     dom.dhikrReference = document.querySelector('.dhikr-reference');
@@ -96,6 +96,9 @@ const App = (function() {
     dom.modalOverlay = document.querySelector('.modal-overlay');
     dom.modalTitle = document.querySelector('.modal-header');
     dom.toast = document.querySelector('.toast');
+    dom.tashkeelToggle = document.getElementById('tashkeel-toggle');
+    dom.tashkeelSwitch = document.getElementById('tashkeel-switch');
+    dom.tashkeelStatus = document.getElementById('tashkeel-status');
 
     dom.appStatus = document.getElementById('app-status');
     dom.themeColor = document.getElementById('theme-color');
@@ -262,11 +265,6 @@ const App = (function() {
     }
 
     renderAzkarItems(sheikh);
-
-    if (dom.searchInput) {
-      dom.searchInput.value = '';
-      dom.searchInput.oninput = (e) => searchAzkar(e.target.value, sheikh);
-    }
   }
 
   function renderAzkarItems(sheikh, filterText = '') {
@@ -312,10 +310,6 @@ const App = (function() {
     `).join('');
   }
 
-  function searchAzkar(query, sheikh) {
-    renderAzkarItems(sheikh, query);
-  }
-
   // ============================================
   // Dhikr Detail Page
   // ============================================
@@ -336,8 +330,23 @@ const App = (function() {
     dom.backBtn.classList.remove('hidden');
     dom.backBtn.onclick = () => { window.location.hash = `azkar/${sheikhId}`; };
 
+    // Show/hide tashkeel toggle only for al-azimia
+    if (dom.tashkeelToggle) {
+      if (sheikhId === 'al-azimia' && dhikr.textPlain) {
+        dom.tashkeelToggle.classList.remove('hidden');
+        updateTashkeelUI();
+      } else {
+        dom.tashkeelToggle.classList.add('hidden');
+      }
+    }
+
+    // Set text based on tashkeel setting
+    const textToShow = (sheikhId === 'al-azimia' && !state.settings.tashkeelOn && dhikr.textPlain) 
+      ? dhikr.textPlain 
+      : dhikr.text;
+
     if (dom.dhikrText) {
-      dom.dhikrText.textContent = dhikr.text;
+      dom.dhikrText.textContent = textToShow;
       dom.dhikrText.style.fontSize = state.settings.fontSize + 'rem';
     }
     if (dom.dhikrReference) {
@@ -361,6 +370,39 @@ const App = (function() {
     window.location.hash = `dhikr/${sheikhId}/${catId}/${dhikrId}`;
   }
 
+  // ============================================
+  // Tashkeel Toggle
+  // ============================================
+  function toggleTashkeel() {
+    state.settings.tashkeelOn = !state.settings.tashkeelOn;
+    updateTashkeelUI();
+    saveState();
+
+    // Refresh text if currently viewing azimia
+    if (state.currentSheikh === 'al-azimia' && state.currentDhikr) {
+      const textToShow = (!state.settings.tashkeelOn && state.currentDhikr.textPlain) 
+        ? state.currentDhikr.textPlain 
+        : state.currentDhikr.text;
+      if (dom.dhikrText) dom.dhikrText.textContent = textToShow;
+    }
+  }
+
+  function updateTashkeelUI() {
+    if (!dom.tashkeelSwitch || !dom.tashkeelStatus) return;
+    if (state.settings.tashkeelOn) {
+      dom.tashkeelSwitch.classList.add('active');
+      dom.tashkeelStatus.textContent = 'مفعل';
+      dom.tashkeelStatus.style.color = 'var(--primary)';
+    } else {
+      dom.tashkeelSwitch.classList.remove('active');
+      dom.tashkeelStatus.textContent = 'معطل';
+      dom.tashkeelStatus.style.color = 'var(--text-secondary)';
+    }
+  }
+
+  // ============================================
+  // Counter
+  // ============================================
   function updateCounterUI(current, target) {
     if (!dom.counterCurrent || !dom.counterTarget || !dom.counterRing) return;
 
@@ -570,7 +612,11 @@ const App = (function() {
   async function shareText() {
     if (!state.currentDhikr) return;
 
-    const text = `${state.currentDhikr.title}\n\n${state.currentDhikr.text}\n\n(التكرار: ${state.currentDhikr.count})\n\nمن تطبيق رفيقي الذكر`;
+    const textToShare = (state.currentSheikh === 'al-azimia' && !state.settings.tashkeelOn && state.currentDhikr.textPlain)
+      ? state.currentDhikr.textPlain
+      : state.currentDhikr.text;
+
+    const text = `${state.currentDhikr.title}\n\n${textToShare}\n\n(التكرار: ${state.currentDhikr.count})\n\nمن تطبيق رفيقي الذكر`;
 
     if (navigator.share) {
       try {
@@ -584,6 +630,10 @@ const App = (function() {
 
   async function shareImage() {
     if (!state.currentDhikr) return;
+
+    const textToRender = (state.currentSheikh === 'al-azimia' && !state.settings.tashkeelOn && state.currentDhikr.textPlain)
+      ? state.currentDhikr.textPlain
+      : state.currentDhikr.text;
 
     const canvas = document.createElement('canvas');
     const ctx = canvas.getContext('2d');
@@ -623,7 +673,7 @@ const App = (function() {
     ctx.fillStyle = '#FFFFFF';
     ctx.font = '36px "Noto Kufi Arabic", sans-serif';
 
-    const words = state.currentDhikr.text.split(' ');
+    const words = textToRender.split(' ');
     let line = '';
     let y = 240;
     const maxWidth = width - 160;
@@ -851,6 +901,11 @@ const App = (function() {
       dom.modalOverlay.onclick = (e) => {
         if (e.target === dom.modalOverlay) dom.modalOverlay.classList.remove('active');
       };
+    }
+
+    // Tashkeel toggle event
+    if (dom.tashkeelSwitch) {
+      dom.tashkeelSwitch.onclick = toggleTashkeel;
     }
   }
 
