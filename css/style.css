@@ -838,59 +838,100 @@ body {
   display: block;
 }
 
-.admin-table {
-  width: 100%;
-  border-collapse: collapse;
-  margin-top: 16px;
+/* Admin Cards List */
+.admin-cards-list {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  margin-top: 12px;
 }
 
-.admin-table th,
-.admin-table td {
-  padding: 12px;
-  text-align: right;
-  border-bottom: 1px solid var(--border);
-  font-size: 0.85rem;
+.admin-card {
+  background: var(--surface);
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border);
+  box-shadow: var(--shadow);
+  padding: 12px 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  transition: transform 0.15s;
 }
 
-.admin-table th {
-  font-family: var(--font-heading);
+.admin-card:active {
+  transform: scale(0.99);
+}
+
+.admin-card-body {
+  flex: 1;
+  min-width: 0;
+}
+
+.admin-card-title {
+  font-size: 0.88rem;
   font-weight: 700;
-  color: var(--primary);
-  background: rgba(27, 94, 32, 0.05);
-}
-
-.admin-table td {
   color: var(--text);
+  margin-bottom: 6px;
+  line-height: 1.4;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
-.admin-table tr:hover td {
-  background: rgba(27, 94, 32, 0.03);
+.admin-card-meta {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 5px;
+}
+
+.admin-card-tag {
+  font-size: 0.68rem;
+  font-weight: 600;
+  color: var(--primary);
+  background: rgba(55, 71, 45, 0.08);
+  border-radius: 6px;
+  padding: 2px 7px;
+}
+
+[data-theme="dark"] .admin-card-tag {
+  background: rgba(74, 93, 63, 0.2);
+  color: var(--primary-light);
+}
+
+.admin-card-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  flex-shrink: 0;
 }
 
 .admin-action-btn {
-  padding: 6px 12px;
-  border-radius: 6px;
+  padding: 7px 12px;
+  border-radius: 8px;
   border: none;
   font-family: var(--font-body);
   font-size: 0.75rem;
+  font-weight: 700;
   cursor: pointer;
-  transition: all 0.2s;
-  margin-left: 4px;
+  transition: all 0.15s;
+  white-space: nowrap;
+  min-width: 72px;
+  text-align: center;
 }
 
 .admin-action-btn.edit {
   background: var(--secondary);
-  color: var(--text-inverse);
+  color: #1A1A1A;
 }
 
 .admin-action-btn.delete {
-  background: #B54A4A;
+  background: #DC2626;
   color: white;
 }
 
-.admin-action-btn:hover {
-  opacity: 0.9;
-  transform: scale(1.05);
+.admin-action-btn:active {
+  opacity: 0.82;
+  transform: scale(0.95);
 }
 
 /* Modal */

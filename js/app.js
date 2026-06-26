@@ -93,7 +93,6 @@ const App = (function() {
     dom.counterInner = document.querySelector('.counter-inner');
     dom.favBtn = document.querySelector('.fav-btn');
     dom.favoritesList = document.querySelector('.favorites-list');
-    dom.adminTableBody = document.querySelector('.admin-table tbody');
     dom.modalOverlay = document.querySelector('.modal-overlay');
     dom.modalTitle = document.querySelector('.modal-header');
     dom.toast = document.querySelector('.toast');
@@ -1169,7 +1168,8 @@ const App = (function() {
   }
 
   function renderAdminTable() {
-    if (!dom.adminTableBody) return;
+    const container = document.getElementById('admin-cards-list');
+    if (!container) return;
 
     let rows = [];
     Object.values(state.azkarData).forEach(sheikh => {
@@ -1180,17 +1180,30 @@ const App = (function() {
       });
     });
 
-    dom.adminTableBody.innerHTML = rows.map(r => `
-      <tr>
-        <td>${r.azkar.title}</td>
-        <td>${r.sheikh.shortName}</td>
-        <td>${r.cat.name}</td>
-        <td>${r.azkar.count}</td>
-        <td>
-          <button class="admin-action-btn edit" onclick="App.editDhikr('${r.sheikh.id}', '${r.cat.id}', '${r.azkar.id}')">تعديل</button>
-          <button class="admin-action-btn delete" onclick="App.deleteDhikr('${r.sheikh.id}', '${r.cat.id}', '${r.azkar.id}')">حذف</button>
-        </td>
-      </tr>
+    if (rows.length === 0) {
+      container.innerHTML = `
+        <div class="empty-state">
+          <div class="empty-state-icon">📭</div>
+          <h3>لا توجد أذكار</h3>
+        </div>`;
+      return;
+    }
+
+    container.innerHTML = rows.map(r => `
+      <div class="admin-card">
+        <div class="admin-card-body">
+          <div class="admin-card-title">${r.azkar.title}</div>
+          <div class="admin-card-meta">
+            <span class="admin-card-tag">${r.sheikh.name}</span>
+            <span class="admin-card-tag">${r.cat.name}</span>
+            <span class="admin-card-tag">🔁 ${r.azkar.count}</span>
+          </div>
+        </div>
+        <div class="admin-card-actions">
+          <button class="admin-action-btn edit" onclick="App.editDhikr('${r.sheikh.id}', '${r.cat.id}', '${r.azkar.id}')">✏️ تعديل</button>
+          <button class="admin-action-btn delete" onclick="App.deleteDhikr('${r.sheikh.id}', '${r.cat.id}', '${r.azkar.id}')">🗑️ حذف</button>
+        </div>
+      </div>
     `).join('');
   }
 
