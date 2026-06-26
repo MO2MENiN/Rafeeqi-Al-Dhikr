@@ -447,6 +447,11 @@ const App = (function() {
         }
         showToast('🎉 تم إكمال الذكر!', 'success');
         triggerConfetti();
+
+        // Auto-advance to next dhikr after a short delay
+        setTimeout(() => {
+          goToNextDhikr();
+        }, 1500);
       }
 
       saveState();
@@ -502,6 +507,44 @@ const App = (function() {
       if (cat.azkar.find(a => a.id === state.currentDhikr.id)) return cat.id;
     }
     return '';
+  }
+
+  function goToNextDhikr() {
+    if (!state.currentSheikh || !state.currentDhikr) return;
+
+    const sheikh = state.azkarData[state.currentSheikh];
+    if (!sheikh) return;
+
+    const currentCatId = getCurrentCatId();
+    const catIndex = sheikh.categories.findIndex(c => c.id === currentCatId);
+    if (catIndex === -1) return;
+
+    const currentCat = sheikh.categories[catIndex];
+    const currentDhikrIndex = currentCat.azkar.findIndex(a => a.id === state.currentDhikr.id);
+    if (currentDhikrIndex === -1) return;
+
+    // Check if there's a next dhikr in the same category
+    if (currentDhikrIndex + 1 < currentCat.azkar.length) {
+      const nextDhikr = currentCat.azkar[currentDhikrIndex + 1];
+      goToDhikr(state.currentSheikh, currentCatId, nextDhikr.id);
+      return;
+    }
+
+    // Check if there's a next category
+    if (catIndex + 1 < sheikh.categories.length) {
+      const nextCat = sheikh.categories[catIndex + 1];
+      if (nextCat.azkar.length > 0) {
+        const nextDhikr = nextCat.azkar[0];
+        goToDhikr(state.currentSheikh, nextCat.id, nextDhikr.id);
+        return;
+      }
+    }
+
+    // No more dhikrs, go back to azkar list
+    showToast('✅ تم إكمال جميع الأذكار!', 'success');
+    setTimeout(() => {
+      window.location.hash = `azkar/${state.currentSheikh}`;
+    }, 1500);
   }
 
   function setupFontSizeControls() {
