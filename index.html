@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no, viewport-fit=cover">
+  <meta name="theme-color" content="#37472D" id="theme-color">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="رفيقي الذكر">
+  <meta name="application-name" content="رفيقي الذكر">
+  <meta name="msapplication-TileColor" content="#37472D">
+  <meta name="msapplication-TileImage" content="images/icons/icon-144x144.png">
+  <meta name="description" content="تطبيق أذكار إسلامية للشيخ الشعراوي والشيخ إبراهيم الأمير - يعمل بدون إنترنت">
+  <meta name="keywords" content="أذكار, تسبيح, قرآن, إسلام, الشعراوي, الأمير, دعاء, صلاة">
+
+  <title>رفيقي الذكر</title>
+
+  <!-- PWA Manifest -->
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Apple Touch Icons -->
+  <link rel="apple-touch-icon" href="images/icons/icon-192x192.png">
+  <link rel="apple-touch-icon" sizes="72x72" href="images/icons/icon-72x72.png">
+  <link rel="apple-touch-icon" sizes="96x96" href="images/icons/icon-96x96.png">
+  <link rel="apple-touch-icon" sizes="128x128" href="images/icons/icon-128x128.png">
+  <link rel="apple-touch-icon" sizes="144x144" href="images/icons/icon-144x144.png">
+  <link rel="apple-touch-icon" sizes="152x152" href="images/icons/icon-152x152.png">
+  <link rel="apple-touch-icon" sizes="192x192" href="images/icons/icon-192x192.png">
+  <link rel="apple-touch-icon" sizes="384x384" href="images/icons/icon-384x384.png">
+  <link rel="apple-touch-icon" sizes="512x512" href="images/icons/icon-512x512.png">
+
+
+
+  <!-- Preconnect for fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <!-- Styles -->
+  <link rel="stylesheet" href="css/style.css">
+
+  <style>
+    /* Inline critical CSS for fast first paint */
+    .pwa-install-banner {
+      position: fixed;
+      bottom: calc(72px + env(safe-area-inset-bottom, 0px));
+      left: 50%;
+      transform: translateX(-50%) translateY(120%);
+      width: calc(100% - 32px);
+      max-width: 448px;
+      background: linear-gradient(135deg, #1B5E20, #0D3B10);
+      color: white;
+      border-radius: 20px;
+      padding: 16px 20px;
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+      z-index: 5000;
+      transition: transform 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+      direction: rtl;
+    }
+    .pwa-install-banner.show {
+      transform: translateX(-50%) translateY(0);
+    }
+    .pwa-install-banner .pwa-icon {
+      width: 56px;
+      height: 56px;
+      border-radius: 14px;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      flex-shrink: 0;
+    }
+    .pwa-install-banner .pwa-info {
+      flex: 1;
+    }
+    .pwa-install-banner .pwa-title {
+      font-weight: 700;
+      font-size: 1rem;
+      margin-bottom: 2px;
+    }
+    .pwa-install-banner .pwa-desc {
+      font-size: 0.8rem;
+      opacity: 0.85;
+    }
+    .pwa-install-banner .pwa-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+    .pwa-install-banner .pwa-btn {
+      padding: 8px 16px;
+      border-radius: 10px;
+      border: none;
+      font-family: inherit;
+      font-weight: 700;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .pwa-install-banner .pwa-btn.install {
+      background: #D4AF37;
+      color: #1A1A1A;
+    }
+    .pwa-install-banner .pwa-btn.install:hover {
+      background: #F4D03F;
+    }
+    .pwa-install-banner .pwa-btn.dismiss {
+      background: rgba(255,255,255,0.15);
+      color: white;
+    }
+    .pwa-install-banner .pwa-btn.dismiss:hover {
+      background: rgba(255,255,255,0.25);
+    }
+
+
+    /* App installed badge */
+    /* Suppress any offline/network status banners */
+    .offline-banner, .network-banner, [class*="offline"], [id*="offline"],
+    .update-banner, .update-banner.show {
+      display: none !important;
+    }
+
+    .app-status {
+      position: fixed;
+      top: 8px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: rgba(27, 94, 32, 0.9);
+      color: white;
+      padding: 4px 14px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 700;
+      z-index: 4000;
+      opacity: 0;
+      transition: opacity 0.3s;
+      pointer-events: none;
+    }
+    .app-status.show {
+      opacity: 1;
+    }
+  </style>
+</head>
+<body>
+  <!-- Desktop Warning -->
+  <div class="desktop-warning">
+    <div class="desktop-warning-content">
+      <div class="icon">📱</div>
+      <h1>رفيقي الذكر</h1>
+      <p>هذا التطبيق مصمم للهواتف الذكية فقط. يرجى فتحه على هاتفك المحمول للحصول على أفضل تجربة.</p>
+    </div>
+  </div>
+
+  <!-- App Container -->
+  <div class="app-container">
+    <!-- App Status -->
+    <div class="app-status" id="app-status">📲 مثبت كتطبيق</div>
+
+    <!-- Header -->
+    <header class="app-header">
+      <button class="header-btn left hidden" aria-label="رجوع">❮</button>
+      <h1 class="header-title">رفيقي الذكر</h1>
+      <button class="header-btn right theme-toggle" aria-label="تبديل الوضع">🌙</button>
+    </header>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Home Page -->
+      <div class="page active" data-page="home">
+        <div class="hero-section">
+          <div class="app-logo">أذكار <span>الشيوخ</span></div>
+          
+        </div>
+
+        <div class="last-read-card card hidden" style="cursor:pointer; margin-top: -8px;">
+          <div style="display:flex; align-items:center; gap:12px;">
+            <span style="font-size:1.5rem;">📖</span>
+            <div>
+              <div style="font-size:0.8rem; color:var(--text-secondary);">آخر قراءة</div>
+              <div class="last-read-title" style="font-weight:700; color:var(--primary);"></div>
+            </div>
+            <span style="margin-right:auto; color:var(--secondary);">❮</span>
+          </div>
+        </div>
+
+        
+
+        <div class="sheikh-grid"></div>
+      </div>
+
+      <!-- Azkar List Page -->
+      <div class="page" data-page="azkar">
+        <div class="sheikh-header">
+          <img src="" alt="" class="sheikh-header-img" loading="lazy">
+          <div class="sheikh-header-info"></div>
+        </div>
+
+        <div class="search-container">
+          <span class="search-icon">🔍</span>
+          <input type="text" class="search-input" placeholder="ابحث في الأذكار..." aria-label="بحث">
+        </div>
+
+        <div class="azkar-list"></div>
+      </div>
+
+      <!-- Dhikr Detail Page -->
+      <div class="page" data-page="dhikr">
+        <div class="dhikr-container">
+          <div class="dhikr-text-card">
+            <p class="dhikr-text"></p>
+            <span class="dhikr-reference"></span>
+          </div>
+
+          <div class="font-size-controls">
+            <button class="font-size-btn font-decrease" aria-label="تصغير الخط">−</button>
+            <span class="font-size-label">1.3rem</span>
+            <button class="font-size-btn font-increase" aria-label="تكبير الخط">+</button>
+          </div>
+
+          <div class="counter-section">
+            <div class="counter-display">
+              <button class="counter-btn reset-btn" aria-label="إعادة">↺</button>
+
+              <div class="counter-main" aria-label="عداد التسبيح">
+                <div class="counter-ring"></div>
+                <div class="counter-inner">
+                  <span class="counter-current">0</span>
+                  <span class="counter-target">/ 0</span>
+                </div>
+              </div>
+
+              <button class="counter-btn" style="visibility:hidden;">↺</button>
+            </div>
+
+            <div class="counter-actions">
+              <button class="counter-action-btn fav-btn" aria-label="المفضلة">
+                <span class="icon">☆</span>
+                <span>المفضلة</span>
+              </button>
+              <button class="counter-action-btn share-btn" aria-label="مشاركة">
+                <span class="icon">📤</span>
+                <span>مشاركة</span>
+              </button>
+              <button class="counter-action-btn share-img-btn" aria-label="مشاركة صورة">
+                <span class="icon">🖼️</span>
+                <span>صورة</span>
+              </button>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Favorites Page -->
+      <div class="page" data-page="favorites">
+        <h2 class="welcome-text">المفضلة</h2>
+        <div class="favorites-list azkar-list"></div>
+      </div>
+
+      <!-- Admin Page -->
+      <div class="page" data-page="admin">
+        <div class="admin-panel active">
+          <h2 class="welcome-text">إدارة الأذكار</h2>
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>العنوان</th>
+                <th>الشيخ</th>
+                <th>التصنيف</th>
+                <th>التكرار</th>
+                <th>الإجراءات</th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+    </main>
+
+    <!-- Bottom Navigation -->
+    <nav class="bottom-nav">
+      <button class="nav-item active" data-page="home" onclick="window.location.hash='home'">
+        <span class="icon">🏠</span>
+        <span>الرئيسية</span>
+      </button>
+      <button class="nav-item" data-page="favorites" onclick="window.location.hash='favorites'">
+        <span class="icon">⭐</span>
+        <span>المفضلة</span>
+      </button>
+      <button class="nav-item" data-page="admin" onclick="window.location.hash='admin'">
+        <span class="icon">⚙️</span>
+        <span>الإدارة</span>
+      </button>
+    </nav>
+
+
+
+    <!-- Edit Modal -->
+    <div class="modal-overlay">
+      <div class="modal">
+        <h3 class="modal-header">تعديل الذكر</h3>
+        <input type="hidden" id="edit-sheikh">
+        <input type="hidden" id="edit-cat">
+        <input type="hidden" id="edit-id">
+        <input type="text" class="modal-input" id="edit-title" placeholder="عنوان الذكر">
+        <textarea class="modal-input" id="edit-text" placeholder="نص الذكر"></textarea>
+        <input type="number" class="modal-input" id="edit-count" placeholder="عدد التكرار" min="1">
+        <input type="text" class="modal-input" id="edit-ref" placeholder="المرجع (اختياري)">
+        <div class="modal-actions">
+          <button class="modal-btn secondary cancel-edit-btn">إلغاء</button>
+          <button class="modal-btn primary save-edit-btn">حفظ</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- Toast -->
+    <div class="toast"></div>
+  </div>
+
+  <script src="js/data.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
