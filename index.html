@@ -115,31 +115,6 @@
       background: rgba(255,255,255,0.25);
     }
 
-    /* Offline indicator */
-    .offline-indicator {
-      position: fixed;
-      top: 64px;
-      left: 50%;
-      transform: translateX(-50%) translateY(-100%);
-      background: #E65100;
-      color: white;
-      padding: 8px 20px;
-      border-radius: 0 0 16px 16px;
-      font-size: 0.85rem;
-      font-weight: 600;
-      z-index: 4000;
-      transition: transform 0.3s ease;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      max-width: 480px;
-      width: 100%;
-      justify-content: center;
-    }
-    .offline-indicator.show {
-      transform: translateX(-50%) translateY(0);
-    }
-
     /* Update available banner */
     .update-banner {
       position: fixed;
@@ -200,14 +175,6 @@
 
   <!-- App Container -->
   <div class="app-container">
-    <!-- Offline Indicator -->
-    <div class="offline-indicator" id="offline-indicator">
-      <span>📡</span>
-      <span>أنت الآن في وضع عدم الاتصال</span>
-    </div>
-
-
-
     <!-- App Status -->
     <div class="app-status" id="app-status">📲 مثبت كتطبيق</div>
 
