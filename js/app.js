@@ -131,9 +131,7 @@ const App = (function() {
 
       // Listen for messages from SW
       navigator.serviceWorker.addEventListener('message', (event) => {
-        if (event.data === 'CACHE_UPDATED') {
-          showUpdateBanner();
-        }
+        // Update banner removed
       });
     }
 
@@ -892,3 +890,7 @@ const App = (function() {
 })();
 
 document.addEventListener('DOMContentLoaded', App.init);
+
+// Suppress offline/online status banners
+window.addEventListener('offline', (e) => { e.stopImmediatePropagation(); }, true);
+window.addEventListener('online', (e) => { e.stopImmediatePropagation(); }, true);
