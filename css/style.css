@@ -1141,85 +1141,9 @@ textarea.modal-input {
   color: var(--primary-dark);
 }
 
-
 /* ============================================
    Alsala Alazimia Page Styles
    ============================================ */
-
-/* Alsala Card on Home */
-.alsala-card {
-  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
-  border-radius: var(--radius);
-  padding: 24px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  text-align: center;
-  box-shadow: var(--shadow);
-  border: 2px solid var(--secondary);
-  cursor: pointer;
-  transition: all 0.3s;
-  position: relative;
-  overflow: hidden;
-  margin-top: 16px;
-}
-
-.alsala-card::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 4px;
-  background: linear-gradient(90deg, var(--secondary), var(--secondary-light));
-  opacity: 1;
-}
-
-.alsala-card::after {
-  content: '';
-  position: absolute;
-  top: -50%;
-  right: -50%;
-  width: 200%;
-  height: 200%;
-  background: radial-gradient(circle, rgba(212,175,55,0.08) 0%, transparent 70%);
-  animation: pulse 4s ease-in-out infinite;
-}
-
-.alsala-card:hover {
-  transform: translateY(-4px);
-  box-shadow: var(--shadow-lg);
-  border-color: var(--secondary-light);
-}
-
-.alsala-card:active {
-  transform: translateY(-2px) scale(0.98);
-}
-
-.alsala-card-icon {
-  font-size: 3rem;
-  margin-bottom: 12px;
-  position: relative;
-  z-index: 1;
-}
-
-.alsala-card-name {
-  font-family: var(--font-heading);
-  font-size: 1.2rem;
-  font-weight: 700;
-  color: var(--secondary);
-  margin-bottom: 4px;
-  position: relative;
-  z-index: 1;
-}
-
-.alsala-card-title {
-  font-size: 0.85rem;
-  color: rgba(255,255,255,0.8);
-  margin-bottom: 12px;
-  position: relative;
-  z-index: 1;
-}
 
 /* Alsala Page Hero */
 .alsala-hero {
