@@ -189,6 +189,11 @@ const App = (function() {
         showPage('admin');
         renderAdmin();
         break;
+      case 'alsala-alazimia':
+        showPage('alsala-alazimia');
+        renderAlsalaAlazimia();
+        break;
+
       default:
         showPage('home');
         renderHome();
@@ -877,6 +882,66 @@ const App = (function() {
 
   }
 
+
+  // ============================================
+  // Alsala Alazimia Page
+  // ============================================
+  function renderAlsalaAlazimia() {
+    dom.headerTitle.textContent = 'الصلاة العظيمية';
+    dom.backBtn.classList.remove('hidden');
+    dom.backBtn.onclick = () => { window.location.hash = 'home'; };
+  }
+
+  function switchAlsalaTab(tab) {
+    document.querySelectorAll('.alsala-tab').forEach(t => {
+      t.classList.toggle('active', t.dataset.tab === tab || (tab === 'tashkeil' && t.dataset.tab === 'tashkeel'));
+    });
+    document.querySelectorAll('[data-tab-content]').forEach(c => {
+      const contentTab = c.dataset.tabContent;
+      const isActive = (tab === 'tashkeil' && contentTab === 'tashkeel') || (tab === 'plain' && contentTab === 'plain');
+      c.classList.toggle('hidden', !isActive);
+    });
+  }
+
+  async function copyAlsala() {
+    const activeTab = document.querySelector('.alsala-tab.active');
+    const isTashkeel = activeTab && (activeTab.dataset.tab === 'tashkeel');
+    const text = isTashkeel 
+      ? 'اللَّهُمَّ إِنِّي أَسْأَلُكَ بِنُورِ وَجْهِ الله الْعَظِيمِ الَّذِي مَلأَ أَرْكَانَ عَرْشِ الله الْعَظِيمِ وَقَامَتْ بِهِ عَوَالِمُ الله الْعَظِيمِ أَنْ تُصَلِّيَ عَلَى مَوْلاَنَا مُحَمَّدٍ ذِي الْقَدْرِ الْعَظِيمِ وَعَلَى آلِ نَبِيِّ الله الْعَظِيمِ بِقَدْرِ عظمة ذَاتِ الله الْعَظِيمِ فِي كُلِّ لَمْحَةٍ وَنَفَسٍ عَدَد مَا فِي عِلْمِ الله الْعَظِيمِ صَلاَةً دَائِمَةً بِدَوَامِ الله الْعَظِيمِ تَعْظِيماً لِحَقِّكَ يَا مَوْلاَنَا يَا مُحَمَّدُ يَا ذَا الْخُلُقِ الْعَظِيمِ وَسَلِّمْ عَلَيْهِ وَعَلَى آلِهِ مِثْلَ ذَلِكَ وَاجْمَعْ بَيْنِي وَبَيْنَهُ كَمَا جَمَعْتَ بَيْنَ الرُّوحِ وَالنَّفْسِ ظَاهِراً وَبَاطِناً يَقَظَةً وَمَنَاماً وَاجْعَلْهُ يَا رَبِّ رُوحاً لِذَاتِي مِنْ جَمِيعِ الْوُجُوهِ فِي الدُّنْيَا قَبْلَ الآخِرَةِ يَا عَظِيمُ.'
+      : 'اللهم إني أسألك بنور وجه الله العظيم الذي ملأ أركان عرش الله العظيم وقامت به عوالم الله العظيم أن تصلي على مولانا محمد ذي القدر العظيم وعلى آل نبي الله العظيم بقدر عظمة ذات الله العظيم في كل لمحة ونفس عدد ما في علم الله العظيم صلاة دائمة بدوام الله العظيم تعظيما لحقك يا مولانا يا محمد يا ذا الخلق العظيم وسلم عليه وعلى آله مثل ذلك واجمع بيني وبينه كما جمعت بين الروح والنفس ظاهرا وباطنا يقظة ومناما واجعله يا رب روحا لذاتي من جميع الوجوه في الدنيا قبل الآخرة يا عظيم.';
+
+    try {
+      await navigator.clipboard.writeText(text);
+      showToast('📋 تم نسخ النص', 'success');
+    } catch (e) {
+      showToast('❌ فشل النسخ');
+    }
+  }
+
+  async function shareAlsala() {
+    const activeTab = document.querySelector('.alsala-tab.active');
+    const isTashkeel = activeTab && (activeTab.dataset.tab === 'tashkeel');
+    const text = isTashkeel 
+      ? 'اللَّهُمَّ إِنِّي أَسْأَلُكَ بِنُورِ وَجْهِ الله الْعَظِيمِ الَّذِي مَلأَ أَرْكَانَ عَرْشِ الله الْعَظِيمِ وَقَامَتْ بِهِ عَوَالِمُ الله الْعَظِيمِ أَنْ تُصَلِّيَ عَلَى مَوْلاَنَا مُحَمَّدٍ ذِي الْقَدْرِ الْعَظِيمِ وَعَلَى آلِ نَبِيِّ الله الْعَظِيمِ بِقَدْرِ عظمة ذَاتِ الله الْعَظِيمِ فِي كُلِّ لَمْحَةٍ وَنَفَسٍ عَدَد مَا فِي عِلْمِ الله الْعَظِيمِ صَلاَةً دَائِمَةً بِدَوَامِ الله الْعَظِيمِ تَعْظِيماً لِحَقِّكَ يَا مَوْلاَنَا يَا مُحَمَّدُ يَا ذَا الْخُلُقِ الْعَظِيمِ وَسَلِّمْ عَلَيْهِ وَعَلَى آلِهِ مِثْلَ ذَلِكَ وَاجْمَعْ بَيْنِي وَبَيْنَهُ كَمَا جَمَعْتَ بَيْنَ الرُّوحِ وَالنَّفْسِ ظَاهِراً وَبَاطِناً يَقَظَةً وَمَنَاماً وَاجْعَلْهُ يَا رَبِّ رُوحاً لِذَاتِي مِنْ جَمِيعِ الْوُجُوهِ فِي الدُّنْيَا قَبْلَ الآخِرَةِ يَا عَظِيمُ.'
+      : 'اللهم إني أسألك بنور وجه الله العظيم الذي ملأ أركان عرش الله العظيم وقامت به عوالم الله العظيم أن تصلي على مولانا محمد ذي القدر العظيم وعلى آل نبي الله العظيم بقدر عظمة ذات الله العظيم في كل لمحة ونفس عدد ما في علم الله العظيم صلاة دائمة بدوام الله العظيم تعظيما لحقك يا مولانا يا محمد يا ذا الخلق العظيم وسلم عليه وعلى آله مثل ذلك واجمع بيني وبينه كما جمعت بين الروح والنفس ظاهرا وباطنا يقظة ومناما واجعله يا رب روحا لذاتي من جميع الوجوه في الدنيا قبل الآخرة يا عظيم.';
+
+    const shareText = `الصلاة العظيمية
+للشيخ سيدي أحمد بن إدريس رحمه الله
+
+${text}
+
+من تطبيق رفيقي الذكر`;
+
+    if (navigator.share) {
+      try {
+        await navigator.share({ title: 'الصلاة العظيمية', text: shareText });
+      } catch (e) { }
+    } else {
+      await navigator.clipboard.writeText(shareText);
+      showToast('📋 تم نسخ النص', 'success');
+    }
+  }
+
   // ============================================
   // Public API
   // ============================================
@@ -885,7 +950,10 @@ const App = (function() {
     goToAzkar,
     goToDhikr,
     editDhikr,
-    deleteDhikr
+    deleteDhikr,
+    switchAlsalaTab,
+    copyAlsala,
+    shareAlsala
   };
 })();
 
