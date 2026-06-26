@@ -44,6 +44,7 @@ const App = (function() {
     bindEvents();
     applyTheme();
     initPWA();
+    AdminPin.init();
     route();
   }
 
@@ -175,6 +176,10 @@ const App = (function() {
         showPage('favorites');
         renderFavorites();
         break;
+      case 'analytics':
+        showPage('analytics');
+        Analytics.renderPage();
+        break;
       case 'admin':
         showPage('admin');
         renderAdmin();
@@ -254,7 +259,7 @@ const App = (function() {
     if (!sheikh) return;
 
     state.currentSheikh = sheikhId;
-    dom.headerTitle.textContent = sheikh.shortName;
+    dom.headerTitle.textContent = sheikh.name;
     dom.backBtn.classList.remove('hidden');
     dom.backBtn.onclick = () => { window.location.hash = 'home'; };
 
@@ -447,8 +452,17 @@ const App = (function() {
         if (state.settings.vibration && navigator.vibrate) {
           navigator.vibrate([50, 100, 50]);
         }
-        showToast('🎉 تم إكمال الذكر!', 'success');
         triggerConfetti();
+
+        const nextDhikr = getNextDhikr();
+        if (nextDhikr) {
+          showToast('✅ انتهى الذكر، جارٍ الانتقال للتالي...', 'success');
+          setTimeout(() => {
+            goToDhikr(nextDhikr.sheikhId, nextDhikr.catId, nextDhikr.id);
+          }, 1800);
+        } else {
+          showCompletionModal();
+        }
       }
 
       saveState();
@@ -504,6 +518,52 @@ const App = (function() {
       if (cat.azkar.find(a => a.id === state.currentDhikr.id)) return cat.id;
     }
     return '';
+  }
+
+  // يعيد الذكر التالي في القائمة، أو null إذا كان هذا آخر ذكر
+  function getNextDhikr() {
+    if (!state.currentDhikr || !state.currentSheikh) return null;
+    const sheikh = state.azkarData[state.currentSheikh];
+    if (!sheikh) return null;
+
+    // ابحث عن الفئة والموضع الحالي
+    for (const cat of sheikh.categories) {
+      const idx = cat.azkar.findIndex(a => a.id === state.currentDhikr.id);
+      if (idx === -1) continue;
+
+      // هل يوجد ذكر تالٍ في نفس الفئة؟
+      if (idx + 1 < cat.azkar.length) {
+        return { ...cat.azkar[idx + 1], sheikhId: state.currentSheikh, catId: cat.id };
+      }
+
+      // هل يوجد فئة تالية؟
+      const catIdx = sheikh.categories.indexOf(cat);
+      for (let ci = catIdx + 1; ci < sheikh.categories.length; ci++) {
+        if (sheikh.categories[ci].azkar.length > 0) {
+          const nextCat = sheikh.categories[ci];
+          return { ...nextCat.azkar[0], sheikhId: state.currentSheikh, catId: nextCat.id };
+        }
+      }
+
+      // آخر ذكر في آخر فئة — لا يوجد تالٍ
+      return null;
+    }
+    return null;
+  }
+
+
+  function showCompletionModal() {
+    const overlay = document.getElementById("completion-overlay");
+    if (!overlay) return;
+    overlay.classList.add("active");
+    triggerConfetti();
+    // سجّل اليوم كمكتمل في التحليل
+    Analytics.markCompleted();
+  }
+
+  function closeCompletionModal() {
+    const overlay = document.getElementById("completion-overlay");
+    if (overlay) overlay.classList.remove("active");
   }
 
   function setupFontSizeControls() {
@@ -721,13 +781,391 @@ const App = (function() {
   }
 
   // ============================================
+  // Analytics Module - وحدة التحليل
+  // ============================================
+  const Analytics = (function() {
+    const STORAGE_KEY = 'rafeeqi_analytics';
+    let calViewYear = null;
+    let calViewMonth = null;
+
+    // Load data from localStorage
+    function load() {
+      try {
+        return JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}');
+      } catch(e) { return {}; }
+    }
+
+    // Save data to localStorage
+    function save(data) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(data));
+    }
+
+    // Get today's date string YYYY-MM-DD
+    function today() {
+      const d = new Date();
+      return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    }
+
+    // Mark today as completed
+    function markCompleted() {
+      const data = load();
+      const key = today();
+      if (!data[key]) {
+        data[key] = 'completed';
+        save(data);
+        // Refresh UI if analytics page is active
+        const page = document.querySelector('.page[data-page="analytics"]');
+        if (page && page.classList.contains('active')) {
+          renderPage();
+        }
+      }
+    }
+
+    // Mark past days without data as missed (only days before today that have no record)
+    function computeDayStatus(dateStr) {
+      const data = load();
+      const t = today();
+      if (dateStr === t) {
+        return data[t] === 'completed' ? 'completed' : 'today-pending';
+      }
+      if (dateStr > t) return 'future';
+      return data[dateStr] === 'completed' ? 'completed' : 'missed';
+    }
+
+    // Compute stats for a given month (year, month 0-indexed)
+    function getMonthStats(year, month) {
+      const data = load();
+      const t = today();
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const todayDate = new Date(t);
+      let completed = 0, missed = 0;
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const key = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        if (key > t) break; // don't count future
+        if (data[key] === 'completed') completed++;
+        else missed++;
+      }
+      // Determine days passed so far this month (for rate calculation)
+      const daysPassed = Math.min(daysInMonth, (() => {
+        const firstOfMonth = new Date(year, month, 1);
+        const diff = Math.floor((todayDate - firstOfMonth) / 86400000) + 1;
+        return Math.max(0, diff);
+      })());
+
+      return { completed, missed: daysPassed - completed, rate: daysPassed > 0 ? Math.round((completed / daysPassed) * 100) : 0 };
+    }
+
+    // Compute streak
+    function computeStreaks() {
+      const data = load();
+      const t = today();
+      // Build sorted list of all past+today dates
+      const allKeys = Object.keys(data).filter(k => k <= t).sort();
+      if (allKeys.length === 0) return { current: 0, best: 0, total: 0 };
+
+      // Total completed days
+      const total = Object.values(data).filter(v => v === 'completed').length;
+
+      // Current streak: count consecutive completed days ending today
+      let current = 0;
+      const d = new Date();
+      while (true) {
+        const key = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+        if (data[key] === 'completed') {
+          current++;
+          d.setDate(d.getDate() - 1);
+        } else break;
+      }
+
+      // Best streak
+      let best = 0, run = 0;
+      // Iterate from the earliest key to today
+      const checkDate = new Date(allKeys[0]);
+      const endDate = new Date(t);
+      const tempD = new Date(checkDate);
+      while (tempD <= endDate) {
+        const k = `${tempD.getFullYear()}-${String(tempD.getMonth()+1).padStart(2,'0')}-${String(tempD.getDate()).padStart(2,'0')}`;
+        if (data[k] === 'completed') {
+          run++;
+          if (run > best) best = run;
+        } else {
+          run = 0;
+        }
+        tempD.setDate(tempD.getDate() + 1);
+      }
+
+      return { current, best, total };
+    }
+
+    // Render calendar for a given year/month
+    function renderCalendar(year, month) {
+      const container = document.getElementById('calendar-days');
+      const titleEl = document.getElementById('cal-title');
+      if (!container || !titleEl) return;
+
+      const months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+      titleEl.textContent = `${months[month]} ${year}`;
+
+      const t = today();
+      const firstDay = new Date(year, month, 1).getDay(); // 0=Sun
+      const daysInMonth = new Date(year, month + 1, 0).getDate();
+      const data = load();
+
+      let html = '';
+      // Empty cells before first day
+      for (let i = 0; i < firstDay; i++) {
+        html += '<div class="calendar-day empty"></div>';
+      }
+
+      for (let d = 1; d <= daysInMonth; d++) {
+        const key = `${year}-${String(month+1).padStart(2,'0')}-${String(d).padStart(2,'0')}`;
+        let cls = 'calendar-day';
+        let mark = '';
+
+        if (key === t) cls += ' today';
+
+        if (key > t) {
+          cls += ' future';
+        } else if (data[key] === 'completed') {
+          cls += ' completed';
+          mark = '<span class="day-mark">✔</span>';
+        } else {
+          cls += ' missed';
+          mark = '<span class="day-mark">✗</span>';
+        }
+
+        html += `<div class="${cls}"><span class="day-num">${d}</span>${mark}</div>`;
+      }
+
+      container.innerHTML = html;
+    }
+
+    // Render entire analytics page
+    function renderPage() {
+      const now = new Date();
+      if (calViewYear === null) calViewYear = now.getFullYear();
+      if (calViewMonth === null) calViewMonth = now.getMonth();
+
+      // Stats
+      const monthStats = getMonthStats(calViewYear, calViewMonth);
+      const streaks = computeStreaks();
+
+      const set = (id, val) => { const el = document.getElementById(id); if (el) el.textContent = val; };
+
+      set('stat-streak', streaks.current);
+      set('stat-best-streak', streaks.best);
+      set('stat-completed', monthStats.completed);
+      set('stat-missed', monthStats.missed);
+      set('stat-total-all', streaks.total);
+      set('stat-rate', monthStats.rate + '%');
+      set('bar-pct', monthStats.rate + '%');
+
+      const bar = document.getElementById('commitment-bar-fill');
+      if (bar) {
+        // Set to 0 first for animation
+        bar.style.width = '0%';
+        setTimeout(() => { bar.style.width = monthStats.rate + '%'; }, 50);
+      }
+
+      const months = ['يناير','فبراير','مارس','أبريل','مايو','يونيو','يوليو','أغسطس','سبتمبر','أكتوبر','نوفمبر','ديسمبر'];
+      const labelEl = document.getElementById('analytics-month-label');
+      if (labelEl) labelEl.textContent = `${months[calViewMonth]} ${calViewYear}`;
+
+      renderCalendar(calViewYear, calViewMonth);
+
+      // Navigation buttons
+      const prevBtn = document.getElementById('cal-prev');
+      const nextBtn = document.getElementById('cal-next');
+      if (prevBtn) prevBtn.onclick = () => {
+        calViewMonth--;
+        if (calViewMonth < 0) { calViewMonth = 11; calViewYear--; }
+        renderPage();
+      };
+      if (nextBtn) nextBtn.onclick = () => {
+        const now2 = new Date();
+        // Don't go beyond current month
+        if (calViewYear < now2.getFullYear() || (calViewYear === now2.getFullYear() && calViewMonth < now2.getMonth())) {
+          calViewMonth++;
+          if (calViewMonth > 11) { calViewMonth = 0; calViewYear++; }
+          renderPage();
+        }
+      };
+    }
+
+    return { markCompleted, renderPage };
+  })();
+
+  // ============================================
+  // Admin PIN System - نظام الرقم السري
+  // ============================================
+  const AdminPin = (function() {
+    const DEFAULT_PIN = '0000';
+    const STORAGE_KEY = 'rafeeqi_admin_pin';
+    let enteredPin = '';
+    let sessionUnlocked = false;
+
+    function getPin() {
+      return localStorage.getItem(STORAGE_KEY) || DEFAULT_PIN;
+    }
+
+    function savePin(pin) {
+      localStorage.setItem(STORAGE_KEY, pin);
+    }
+
+    function updateDots() {
+      for (let i = 0; i < 4; i++) {
+        const dot = document.getElementById('dot-' + i);
+        if (dot) dot.classList.toggle('filled', i < enteredPin.length);
+      }
+    }
+
+    function clearError() {
+      const err = document.getElementById('pin-error');
+      if (err) err.classList.add('hidden');
+    }
+
+    function showError() {
+      const err = document.getElementById('pin-error');
+      if (err) err.classList.remove('hidden');
+      const dots = document.getElementById('pin-dots');
+      if (dots) {
+        dots.style.animation = 'none';
+        dots.offsetHeight;
+        dots.style.animation = 'pinShake 0.4s ease';
+      }
+      enteredPin = '';
+      updateDots();
+      setTimeout(clearError, 2000);
+    }
+
+    function pushDigit(d) {
+      if (enteredPin.length >= 4) return;
+      enteredPin += d;
+      updateDots();
+      clearError();
+      if (enteredPin.length === 4) setTimeout(checkPin, 120);
+    }
+
+    function deleteDigit() {
+      if (enteredPin.length > 0) {
+        enteredPin = enteredPin.slice(0, -1);
+        updateDots();
+        clearError();
+      }
+    }
+
+    function checkPin() {
+      if (enteredPin === getPin()) {
+        sessionUnlocked = true;
+        showAdminPanel();
+      } else {
+        showError();
+      }
+    }
+
+    function showAdminPanel() {
+      const loginScreen = document.getElementById('admin-login-screen');
+      const panel = document.getElementById('admin-panel');
+      if (loginScreen) loginScreen.style.display = 'none';
+      if (panel) panel.classList.remove('hidden');
+      renderAdminTable();
+    }
+
+    function showLoginScreen() {
+      const loginScreen = document.getElementById('admin-login-screen');
+      const panel = document.getElementById('admin-panel');
+      if (loginScreen) loginScreen.style.display = '';
+      if (panel) panel.classList.add('hidden');
+      enteredPin = '';
+      updateDots();
+      clearError();
+    }
+
+    function openChangePinModal() {
+      const overlay = document.getElementById('change-pin-overlay');
+      if (overlay) overlay.classList.add('active');
+      ['pin-current','pin-new','pin-confirm'].forEach(id => {
+        const el = document.getElementById(id); if (el) el.value = '';
+      });
+      const err = document.getElementById('change-pin-error');
+      if (err) { err.textContent = ''; err.classList.add('hidden'); }
+    }
+
+    function closeChangePinModal() {
+      const overlay = document.getElementById('change-pin-overlay');
+      if (overlay) overlay.classList.remove('active');
+    }
+
+    function saveNewPin() {
+      const current = document.getElementById('pin-current')?.value?.trim();
+      const newPin  = document.getElementById('pin-new')?.value?.trim();
+      const confirm = document.getElementById('pin-confirm')?.value?.trim();
+      const errEl   = document.getElementById('change-pin-error');
+      const showErr = (msg) => {
+        if (errEl) { errEl.textContent = '❌ ' + msg; errEl.classList.remove('hidden'); }
+      };
+      if (current !== getPin()) return showErr('كلمة المرور الحالية غير صحيحة');
+      if (!/^\d{4}$/.test(newPin)) return showErr('يجب أن تكون الجديدة 4 أرقام');
+      if (newPin !== confirm) return showErr('كلمتا المرور غير متطابقتين');
+      savePin(newPin);
+      closeChangePinModal();
+      showToast('✅ تم تغيير كلمة المرور بنجاح', 'success');
+    }
+
+    function init() {
+      document.querySelectorAll('.pin-key[data-digit]').forEach(btn => {
+        btn.onclick = () => pushDigit(btn.dataset.digit);
+      });
+      const delBtn = document.getElementById('pin-del');
+      if (delBtn) delBtn.onclick = deleteDigit;
+
+      const changePinBtn = document.getElementById('change-pin-btn');
+      if (changePinBtn) changePinBtn.onclick = openChangePinModal;
+
+      const cancelBtn = document.getElementById('cancel-change-pin-btn');
+      if (cancelBtn) cancelBtn.onclick = closeChangePinModal;
+
+      const saveBtn = document.getElementById('save-change-pin-btn');
+      if (saveBtn) saveBtn.onclick = saveNewPin;
+
+      const overlay = document.getElementById('change-pin-overlay');
+      if (overlay) overlay.onclick = (e) => { if (e.target === overlay) closeChangePinModal(); };
+
+      if (!document.getElementById('pin-shake-style')) {
+        const s = document.createElement('style');
+        s.id = 'pin-shake-style';
+        s.textContent = `@keyframes pinShake {
+          0%,100%{transform:translateX(0)}
+          20%{transform:translateX(-8px)}
+          40%{transform:translateX(8px)}
+          60%{transform:translateX(-5px)}
+          80%{transform:translateX(5px)}
+        }`;
+        document.head.appendChild(s);
+      }
+    }
+
+    return { init, showLoginScreen, isUnlocked: () => sessionUnlocked };
+  })();
+
+  // ============================================
   // Admin Panel
   // ============================================
   function renderAdmin() {
     dom.headerTitle.textContent = 'لوحة الإدارة';
     dom.backBtn.classList.remove('hidden');
     dom.backBtn.onclick = () => { window.location.hash = 'home'; };
-    renderAdminTable();
+
+    if (AdminPin.isUnlocked()) {
+      const loginScreen = document.getElementById('admin-login-screen');
+      const panel = document.getElementById('admin-panel');
+      if (loginScreen) loginScreen.style.display = 'none';
+      if (panel) panel.classList.remove('hidden');
+      renderAdminTable();
+    } else {
+      AdminPin.showLoginScreen();
+    }
   }
 
   function renderAdminTable() {
@@ -905,6 +1343,16 @@ const App = (function() {
       };
     }
 
+    // Completion modal close
+    const completionClose = document.getElementById('completion-close');
+    if (completionClose) completionClose.onclick = closeCompletionModal;
+    const completionOverlay = document.getElementById('completion-overlay');
+    if (completionOverlay) {
+      completionOverlay.onclick = (e) => {
+        if (e.target === completionOverlay) closeCompletionModal();
+      };
+    }
+
     // Tashkeel toggle event
     if (dom.tashkeelSwitch) {
       dom.tashkeelSwitch.onclick = toggleTashkeel;
@@ -919,7 +1367,8 @@ const App = (function() {
     goToAzkar,
     goToDhikr,
     editDhikr,
-    deleteDhikr
+    deleteDhikr,
+    Analytics
   };
 })();
 

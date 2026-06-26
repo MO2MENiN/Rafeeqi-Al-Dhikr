@@ -312,10 +312,122 @@
         <div class="favorites-list azkar-list"></div>
       </div>
 
+      <!-- Analytics Page -->
+      <div class="page" data-page="analytics">
+        <div class="analytics-header">
+          <h2>📊 تحليل الالتزام</h2>
+          <p id="analytics-month-label">هذا الشهر</p>
+        </div>
+
+        <!-- Stats Grid -->
+        <div class="stats-grid">
+          <div class="stat-card highlight">
+            <span class="stat-icon">🔥</span>
+            <span class="stat-value" id="stat-streak">0</span>
+            <span class="stat-label">أيام متتالية حالياً</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon">🏆</span>
+            <span class="stat-value" id="stat-best-streak">0</span>
+            <span class="stat-label">أفضل سلسلة التزام</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon">✅</span>
+            <span class="stat-value" id="stat-completed">0</span>
+            <span class="stat-label">أيام أتممت الذكر</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon">❌</span>
+            <span class="stat-value" id="stat-missed">0</span>
+            <span class="stat-label">أيام فاتك الذكر</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon">📅</span>
+            <span class="stat-value" id="stat-total-all">0</span>
+            <span class="stat-label">إجمالي أيام الالتزام</span>
+          </div>
+          <div class="stat-card">
+            <span class="stat-icon">📈</span>
+            <span class="stat-value" id="stat-rate">0%</span>
+            <span class="stat-label">نسبة الالتزام هذا الشهر</span>
+          </div>
+        </div>
+
+        <!-- Commitment Bar -->
+        <div class="commitment-bar-wrap">
+          <div class="commitment-bar-header">
+            <span class="commitment-bar-title">نسبة الالتزام</span>
+            <span class="commitment-bar-pct" id="bar-pct">0%</span>
+          </div>
+          <div class="commitment-bar-track">
+            <div class="commitment-bar-fill" id="commitment-bar-fill"></div>
+          </div>
+        </div>
+
+        <!-- Calendar -->
+        <div class="calendar-section">
+          <div class="calendar-nav">
+            <button class="calendar-nav-btn" id="cal-next">❯</button>
+            <span class="calendar-month-title" id="cal-title"></span>
+            <button class="calendar-nav-btn" id="cal-prev">❮</button>
+          </div>
+          <div class="calendar-weekdays">
+            <div class="calendar-weekday">أح</div>
+            <div class="calendar-weekday">إث</div>
+            <div class="calendar-weekday">ث</div>
+            <div class="calendar-weekday">أر</div>
+            <div class="calendar-weekday">خ</div>
+            <div class="calendar-weekday">ج</div>
+            <div class="calendar-weekday">س</div>
+          </div>
+          <div class="calendar-days" id="calendar-days"></div>
+          <div class="calendar-legend">
+            <div class="legend-item"><div class="legend-dot green"></div><span>تم الذكر ✔</span></div>
+            <div class="legend-item"><div class="legend-dot red"></div><span>فات الذكر</span></div>
+            <div class="legend-item"><div class="legend-dot gray"></div><span>أيام قادمة</span></div>
+          </div>
+        </div>
+      </div>
+
       <!-- Admin Page -->
       <div class="page" data-page="admin">
-        <div class="admin-panel active">
-          <h2 class="welcome-text">إدارة الأذكار</h2>
+
+        <!-- Login Screen -->
+        <div class="admin-login-screen" id="admin-login-screen">
+          <div class="admin-login-card">
+            <div class="admin-login-icon">⚙️</div>
+            <h2 class="admin-login-title">لوحة الإدارة</h2>
+            <p class="admin-login-subtitle">أدخل الرقم السري للمتابعة</p>
+            <div class="pin-dots" id="pin-dots">
+              <div class="pin-dot" id="dot-0"></div>
+              <div class="pin-dot" id="dot-1"></div>
+              <div class="pin-dot" id="dot-2"></div>
+              <div class="pin-dot" id="dot-3"></div>
+            </div>
+            <p class="pin-error hidden" id="pin-error">❌ الرقم السري غير صحيح</p>
+            <div class="pin-pad">
+              <button class="pin-key" data-digit="1">١</button>
+              <button class="pin-key" data-digit="2">٢</button>
+              <button class="pin-key" data-digit="3">٣</button>
+              <button class="pin-key" data-digit="4">٤</button>
+              <button class="pin-key" data-digit="5">٥</button>
+              <button class="pin-key" data-digit="6">٦</button>
+              <button class="pin-key" data-digit="7">٧</button>
+              <button class="pin-key" data-digit="8">٨</button>
+              <button class="pin-key" data-digit="9">٩</button>
+              <button class="pin-key pin-key-empty"></button>
+              <button class="pin-key" data-digit="0">٠</button>
+              <button class="pin-key pin-key-del" id="pin-del">⌫</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Admin Panel (shown after login) -->
+        <div class="admin-panel hidden" id="admin-panel">
+          <div class="admin-panel-header">
+            <h2 class="welcome-text" style="margin-bottom:0;">إدارة الأذكار</h2>
+            <button class="change-pin-btn" id="change-pin-btn">🔑 تغيير كلمة المرور</button>
+          </div>
           <table class="admin-table">
             <thead>
               <tr>
@@ -330,6 +442,22 @@
           </table>
         </div>
       </div>
+
+      <!-- Change PIN Modal -->
+      <div class="modal-overlay" id="change-pin-overlay">
+        <div class="modal">
+          <h3 class="modal-header">🔑 تغيير كلمة المرور</h3>
+          <p style="font-size:0.82rem; color:var(--text-secondary); margin-bottom:12px; text-align:center;">أدخل كلمة المرور الحالية أولاً ثم الجديدة</p>
+          <input type="password" inputmode="numeric" maxlength="4" class="modal-input" id="pin-current" placeholder="كلمة المرور الحالية (4 أرقام)">
+          <input type="password" inputmode="numeric" maxlength="4" class="modal-input" id="pin-new" placeholder="كلمة المرور الجديدة (4 أرقام)">
+          <input type="password" inputmode="numeric" maxlength="4" class="modal-input" id="pin-confirm" placeholder="تأكيد كلمة المرور الجديدة">
+          <p class="pin-error hidden" id="change-pin-error" style="text-align:center; margin-bottom:8px;"></p>
+          <div class="modal-actions">
+            <button class="modal-btn secondary" id="cancel-change-pin-btn">إلغاء</button>
+            <button class="modal-btn primary" id="save-change-pin-btn">حفظ</button>
+          </div>
+        </div>
+      </div>
     </main>
 
     <!-- Bottom Navigation -->
@@ -341,6 +469,10 @@
       <button class="nav-item" data-page="favorites" onclick="window.location.hash='favorites'">
         <span class="icon">⭐</span>
         <span>المفضلة</span>
+      </button>
+      <button class="nav-item" data-page="analytics" onclick="window.location.hash='analytics'">
+        <span class="icon">📊</span>
+        <span>تحليل</span>
       </button>
       <button class="nav-item" data-page="admin" onclick="window.location.hash='admin'">
         <span class="icon">⚙️</span>
@@ -368,6 +500,16 @@
 
     <!-- Toast -->
     <div class="toast"></div>
+
+    <!-- Completion Modal -->
+    <div class="completion-overlay" id="completion-overlay">
+      <div class="completion-modal">
+        <div class="completion-icon">📿</div>
+        <h2 class="completion-title">تم الانتهاء من الأذكار</h2>
+        <p class="completion-msg">بارك الله فيك وتقبّل منك</p>
+        <button class="completion-btn" id="completion-close">حسناً</button>
+      </div>
+    </div>
   </div>
 
   <script src="js/data.js"></script>

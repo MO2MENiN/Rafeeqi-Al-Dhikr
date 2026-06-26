@@ -3,7 +3,7 @@
 // GitHub Pages Compatible Version
 // ============================================
 
-const CACHE_VERSION = 'v3';
+const CACHE_VERSION = 'v4';
 const CACHE_NAME = `rafeeqi-dhikr-${CACHE_VERSION}`;
 const STATIC_CACHE = `azkar-static-${CACHE_VERSION}`;
 const IMAGE_CACHE = `azkar-images-${CACHE_VERSION}`;
