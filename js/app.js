@@ -45,6 +45,7 @@ const App = (function() {
     applyTheme();
     initPWA();
     AdminPin.init();
+    AdminPin.setOnUnlock(renderAdminTable);
     route();
   }
 
@@ -1068,8 +1069,12 @@ const App = (function() {
       const panel = document.getElementById('admin-panel');
       if (loginScreen) loginScreen.style.display = 'none';
       if (panel) panel.classList.remove('hidden');
-      renderAdminTable();
+      if (typeof onUnlock === 'function') onUnlock();
     }
+
+    let onUnlock = null;
+
+    function setOnUnlock(fn) { onUnlock = fn; }
 
     function showLoginScreen() {
       const loginScreen = document.getElementById('admin-login-screen');
@@ -1145,7 +1150,7 @@ const App = (function() {
       }
     }
 
-    return { init, showLoginScreen, isUnlocked: () => sessionUnlocked };
+    return { init, showLoginScreen, isUnlocked: () => sessionUnlocked, setOnUnlock };
   })();
 
   // ============================================
@@ -1189,7 +1194,7 @@ const App = (function() {
       return;
     }
 
-    container.innerHTML = rows.map(r => `
+    container.innerHTML = rows.map((r, i) => `
       <div class="admin-card">
         <div class="admin-card-body">
           <div class="admin-card-title">${r.azkar.title}</div>
@@ -1200,11 +1205,30 @@ const App = (function() {
           </div>
         </div>
         <div class="admin-card-actions">
-          <button class="admin-action-btn edit" onclick="App.editDhikr('${r.sheikh.id}', '${r.cat.id}', '${r.azkar.id}')">✏️ تعديل</button>
-          <button class="admin-action-btn delete" onclick="App.deleteDhikr('${r.sheikh.id}', '${r.cat.id}', '${r.azkar.id}')">🗑️ حذف</button>
+          <button class="admin-action-btn edit"
+            data-sheikh="${r.sheikh.id}"
+            data-cat="${r.cat.id}"
+            data-dhikr="${r.azkar.id}">✏️ تعديل</button>
+          <button class="admin-action-btn delete"
+            data-sheikh="${r.sheikh.id}"
+            data-cat="${r.cat.id}"
+            data-dhikr="${r.azkar.id}">🗑️ حذف</button>
         </div>
       </div>
     `).join('');
+
+    // ربط الأحداث عبر data attributes — يتجنب مشاكل الـ inline onclick
+    container.querySelectorAll('.admin-action-btn.edit').forEach(btn => {
+      btn.addEventListener('click', () => {
+        editDhikr(btn.dataset.sheikh, btn.dataset.cat, btn.dataset.dhikr);
+      });
+    });
+
+    container.querySelectorAll('.admin-action-btn.delete').forEach(btn => {
+      btn.addEventListener('click', () => {
+        deleteDhikr(btn.dataset.sheikh, btn.dataset.cat, btn.dataset.dhikr);
+      });
+    });
   }
 
   function editDhikr(sheikhId, catId, dhikrId) {
