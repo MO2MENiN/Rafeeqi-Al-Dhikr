@@ -1140,3 +1140,246 @@ textarea.modal-input {
   background: rgba(27, 94, 32, 0.2);
   color: var(--primary-dark);
 }
+
+
+/* ============================================
+   Alsala Alazimia Page Styles
+   ============================================ */
+
+/* Alsala Card on Home */
+.alsala-card {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  border-radius: var(--radius);
+  padding: 24px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  box-shadow: var(--shadow);
+  border: 2px solid var(--secondary);
+  cursor: pointer;
+  transition: all 0.3s;
+  position: relative;
+  overflow: hidden;
+  margin-top: 16px;
+}
+
+.alsala-card::before {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 4px;
+  background: linear-gradient(90deg, var(--secondary), var(--secondary-light));
+  opacity: 1;
+}
+
+.alsala-card::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(212,175,55,0.08) 0%, transparent 70%);
+  animation: pulse 4s ease-in-out infinite;
+}
+
+.alsala-card:hover {
+  transform: translateY(-4px);
+  box-shadow: var(--shadow-lg);
+  border-color: var(--secondary-light);
+}
+
+.alsala-card:active {
+  transform: translateY(-2px) scale(0.98);
+}
+
+.alsala-card-icon {
+  font-size: 3rem;
+  margin-bottom: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.alsala-card-name {
+  font-family: var(--font-heading);
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--secondary);
+  margin-bottom: 4px;
+  position: relative;
+  z-index: 1;
+}
+
+.alsala-card-title {
+  font-size: 0.85rem;
+  color: rgba(255,255,255,0.8);
+  margin-bottom: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+/* Alsala Page Hero */
+.alsala-hero {
+  text-align: center;
+  padding: 32px 20px;
+  background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+  color: white;
+  border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+  margin: -16px -16px 24px;
+  position: relative;
+  overflow: hidden;
+}
+
+.alsala-hero::before {
+  content: '';
+  position: absolute;
+  top: -50%;
+  right: -50%;
+  width: 200%;
+  height: 200%;
+  background: radial-gradient(circle, rgba(212,175,55,0.1) 0%, transparent 70%);
+  animation: pulse 4s ease-in-out infinite;
+}
+
+.alsala-icon {
+  font-size: 3.5rem;
+  margin-bottom: 12px;
+  position: relative;
+  z-index: 1;
+}
+
+.alsala-title {
+  font-family: var(--font-heading);
+  font-size: 1.4rem;
+  font-weight: 800;
+  color: var(--secondary);
+  margin-bottom: 6px;
+  position: relative;
+  z-index: 1;
+}
+
+.alsala-subtitle {
+  font-size: 0.9rem;
+  opacity: 0.85;
+  position: relative;
+  z-index: 1;
+}
+
+/* Tabs */
+.alsala-tabs {
+  display: flex;
+  gap: 8px;
+  margin-bottom: 20px;
+  padding: 4px;
+  background: var(--bg);
+  border-radius: var(--radius-sm);
+}
+
+.alsala-tab {
+  flex: 1;
+  padding: 10px 16px;
+  border-radius: var(--radius-sm);
+  border: none;
+  background: transparent;
+  color: var(--text-secondary);
+  font-family: var(--font-heading);
+  font-size: 0.9rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.alsala-tab.active {
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  color: white;
+  box-shadow: 0 2px 8px rgba(27, 94, 32, 0.3);
+}
+
+.alsala-tab:not(.active):hover {
+  color: var(--primary);
+}
+
+/* Text Content */
+.alsala-content {
+  margin-bottom: 20px;
+}
+
+.alsala-text-card {
+  background: var(--surface);
+  border-radius: var(--radius);
+  padding: 24px;
+  box-shadow: var(--shadow);
+  border: 1px solid var(--border);
+  text-align: center;
+  animation: fadeIn 0.3s ease;
+}
+
+.alsala-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 6px 14px;
+  background: linear-gradient(135deg, var(--primary), var(--primary-light));
+  color: white;
+  border-radius: 20px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  margin-bottom: 16px;
+}
+
+.alsala-text {
+  font-family: var(--font-quran);
+  font-size: 1.15rem;
+  line-height: 2.2;
+  color: var(--text);
+}
+
+.alsala-text.tashkeel {
+  font-size: 1.1rem;
+  line-height: 2.4;
+}
+
+/* Actions */
+.alsala-actions {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-bottom: 24px;
+}
+
+.alsala-action-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  padding: 14px 24px;
+  border-radius: var(--radius-sm);
+  border: 1.5px solid var(--border);
+  background: var(--surface);
+  color: var(--text);
+  font-family: var(--font-body);
+  font-size: 0.85rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  min-width: 100px;
+}
+
+.alsala-action-btn:hover {
+  border-color: var(--primary);
+  color: var(--primary);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.alsala-action-btn:active {
+  transform: translateY(0) scale(0.98);
+}
+
+.alsala-action-btn .icon {
+  font-size: 1.6rem;
+}
+
