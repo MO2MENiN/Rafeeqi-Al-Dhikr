@@ -1544,54 +1544,50 @@ textarea.modal-input {
    ============================================ */
 
 .admin-login-screen {
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  min-height: calc(100vh - var(--header-height) - var(--bottom-nav-height) - 40px);
-  padding: 16px;
+  display: block;
 }
 
 .admin-login-card {
   background: var(--surface);
-  border-radius: var(--radius);
-  padding: 32px 24px 28px;
+  border-radius: var(--radius-sm);
+  padding: 20px 16px 16px;
   width: 100%;
-  max-width: 320px;
   text-align: center;
-  box-shadow: var(--shadow-lg);
+  box-shadow: var(--shadow);
   border: 1px solid var(--border);
+  margin-bottom: 12px;
 }
 
 .admin-login-icon {
-  font-size: 3rem;
-  margin-bottom: 12px;
+  font-size: 2rem;
+  margin-bottom: 6px;
 }
 
 .admin-login-title {
   font-family: var(--font-heading);
-  font-size: 1.2rem;
+  font-size: 1rem;
   font-weight: 800;
   color: var(--primary);
-  margin-bottom: 6px;
+  margin-bottom: 4px;
 }
 
 .admin-login-subtitle {
-  font-size: 0.82rem;
+  font-size: 0.78rem;
   color: var(--text-secondary);
-  margin-bottom: 24px;
+  margin-bottom: 16px;
 }
 
 /* PIN Dots */
 .pin-dots {
   display: flex;
   justify-content: center;
-  gap: 16px;
-  margin-bottom: 10px;
+  gap: 14px;
+  margin-bottom: 8px;
 }
 
 .pin-dot {
-  width: 16px;
-  height: 16px;
+  width: 14px;
+  height: 14px;
   border-radius: 50%;
   border: 2px solid var(--primary);
   background: transparent;
@@ -1604,11 +1600,11 @@ textarea.modal-input {
 }
 
 .pin-error {
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   color: #DC2626;
-  margin-bottom: 14px;
+  margin-bottom: 8px;
   font-weight: 600;
-  min-height: 20px;
+  min-height: 18px;
 }
 
 .pin-error.hidden {
@@ -1619,17 +1615,17 @@ textarea.modal-input {
 .pin-pad {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
-  gap: 10px;
-  margin-top: 16px;
+  gap: 8px;
+  margin-top: 12px;
 }
 
 .pin-key {
-  height: 56px;
-  border-radius: 14px;
+  height: 48px;
+  border-radius: 12px;
   border: 1px solid var(--border);
   background: var(--bg);
   color: var(--text);
-  font-size: 1.4rem;
+  font-size: 1.2rem;
   font-family: var(--font-body);
   font-weight: 700;
   cursor: pointer;
@@ -1653,7 +1649,7 @@ textarea.modal-input {
 }
 
 .pin-key-del {
-  font-size: 1.2rem;
+  font-size: 1.1rem;
   color: var(--text-secondary);
 }
 
